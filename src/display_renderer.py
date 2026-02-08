@@ -35,6 +35,14 @@ class DisplayRenderer:
         self.height = height
         self.color_mode = color_mode
         
+        # For B&W mode, we need to use 0/1 for colors instead of RGB tuples
+        if self.color_mode == "bw":
+            self.black_color = 0
+            self.white_color = 1
+        else:
+            self.black_color = self.COLORS["black"]
+            self.white_color = self.COLORS["white"]
+        
         # Layout dimensions
         self.header_height = 40
         self.event_list_height = 80
@@ -90,10 +98,15 @@ class DisplayRenderer:
     def _draw_header(self, draw: ImageDraw.ImageDraw, update_time: Optional[datetime]):
         """Draw header with title and timestamp."""
         # Header background
+        if self.color_mode == "red":
+            bg_color = self.COLORS["light_grey"]
+        else:
+            bg_color = 1  # White for B&W (1 = white in 1-bit mode)
+        
         draw.rectangle(
             [(0, 0), (self.width, self.header_height)],
-            fill=self.COLORS["light_grey"],
-            outline=self.COLORS["black"]
+            fill=bg_color,
+            outline=self.black_color
         )
         
         # Title
@@ -101,7 +114,7 @@ class DisplayRenderer:
         draw.text(
             (10, 12),
             title,
-            fill=self.COLORS["black"],
+            fill=self.black_color,
             font=self.font_large
         )
         
@@ -114,7 +127,7 @@ class DisplayRenderer:
         draw.text(
             (self.width - 150, 12),
             f"Updated: {timestamp}",
-            fill=self.COLORS["dark_grey"],
+            fill=self.black_color,
             font=self.font_small
         )
     
@@ -142,10 +155,15 @@ class DisplayRenderer:
         cell_height = grid_height / rows
         
         # Draw grid background
+        if self.color_mode == "red":
+            bg_color = self.COLORS["white"]
+        else:
+            bg_color = 1  # White in B&W
+        
         draw.rectangle(
             [(grid_left, grid_top), (grid_left + grid_width, grid_top + grid_height)],
-            fill=self.COLORS["white"],
-            outline=self.COLORS["black"]
+            fill=bg_color,
+            outline=self.black_color
         )
         
         # Day names
@@ -153,7 +171,7 @@ class DisplayRenderer:
         for i, day_name in enumerate(day_names):
             x = grid_left + i * cell_width + 5
             y = grid_top + 2
-            draw.text((x, y), day_name, fill=self.COLORS["black"], font=self.font_small)
+            draw.text((x, y), day_name, fill=self.black_color, font=self.font_small)
         
         # Draw cells and events
         current_date = start_date
@@ -165,16 +183,21 @@ class DisplayRenderer:
                 # Cell border
                 draw.rectangle(
                     [(cell_left, cell_top), (cell_left + cell_width, cell_top + cell_height)],
-                    outline=self.COLORS["black"],
+                    outline=self.black_color,
                     width=1
                 )
                 
                 # Highlight today
                 if current_date == today:
+                    if self.color_mode == "red":
+                        highlight_color = self.COLORS["light_grey"]
+                    else:
+                        highlight_color = 0  # Dark for B&W
+                    
                     draw.rectangle(
                         [(cell_left + 1, cell_top + 1),
                          (cell_left + cell_width - 1, cell_top + cell_height - 1)],
-                        fill=self.COLORS["light_grey"]
+                        fill=highlight_color
                     )
                 
                 # Date number
@@ -182,7 +205,7 @@ class DisplayRenderer:
                 draw.text(
                     (cell_left + 3, cell_top + 2),
                     date_str,
-                    fill=self.COLORS["black"],
+                    fill=self.black_color,
                     font=self.font_medium
                 )
                 
@@ -216,17 +239,22 @@ class DisplayRenderer:
         list_height = self.event_list_height
         
         # Background
+        if self.color_mode == "red":
+            bg_color = self.COLORS["white"]
+        else:
+            bg_color = 1  # White in B&W
+        
         draw.rectangle(
             [(0, list_top), (self.width, list_top + list_height)],
-            fill=self.COLORS["white"],
-            outline=self.COLORS["black"]
+            fill=bg_color,
+            outline=self.black_color
         )
         
         # Header
         draw.text(
             (5, list_top + 2),
             "Today & Upcoming",
-            fill=self.COLORS["black"],
+            fill=self.black_color,
             font=self.font_medium
         )
         
@@ -253,14 +281,14 @@ class DisplayRenderer:
             # Owner color
             if owner == "ashi":
                 owner_indicator = "A"
-                text_color = self.COLORS["red"] if self.color_mode == "red" else self.COLORS["black"]
+                text_color = self.COLORS["red"] if self.color_mode == "red" else self.black_color
             else:
                 owner_indicator = "S"
-                text_color = self.COLORS["black"]
+                text_color = self.black_color
             
             # Draw indicator and text
             draw.text((5, y), f"{owner_indicator}", fill=text_color, font=self.font_small)
-            draw.text((15, y), f"{time_str} {title}", fill=self.COLORS["black"], font=self.font_small)
+            draw.text((15, y), f"{time_str} {title}", fill=self.black_color, font=self.font_small)
             
             y += 12
     
