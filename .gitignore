@@ -34,7 +34,12 @@ token.pickle
 
 # SQLite database
 events_cache.db
+test_cache.db
 *.db-journal
+
+# Test artifacts
+test_display.png
+test_output.png
 
 # IDE
 .vscode/
