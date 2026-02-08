@@ -54,13 +54,21 @@ def setup_logging():
     """Configure logging."""
     log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     
+    handlers = [logging.StreamHandler()]
+    
+    # Only add file handler if path is writable
+    try:
+        log_path = Path(LOG_FILE)
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        handlers.append(logging.FileHandler(LOG_FILE))
+    except (OSError, PermissionError):
+        # Fall back to console-only logging if file logging fails
+        pass
+    
     logging.basicConfig(
         level=getattr(logging, LOG_LEVEL),
         format=log_format,
-        handlers=[
-            logging.StreamHandler(),
-            logging.FileHandler(LOG_FILE)
-        ]
+        handlers=handlers
     )
     return logging.getLogger(__name__)
 

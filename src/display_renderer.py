@@ -37,8 +37,8 @@ class DisplayRenderer:
         
         # Layout dimensions
         self.header_height = 40
-        self.grid_height = height - header_height - 120  # Top grid + bottom event list
         self.event_list_height = 80
+        self.grid_height = height - self.header_height - self.event_list_height
         
         # Fonts (fallback to default)
         try:
