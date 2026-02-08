@@ -53,7 +53,9 @@ epaper-calendar/
 ├── docs/
 │   ├── SETUP.md                 # Setup guide
 │   ├── OAUTH_SETUP.md           # Google OAuth configuration
-│   └── DEPLOYMENT.md            # RPi deployment guide
+│   ├── DEPLOYMENT.md            # RPi deployment guide
+│   ├── TROUBLESHOOTING.md       # Common issues & solutions
+│   └── ARCHITECTURE.md          # System design overview
 ├── requirements.txt
 ├── .env.example
 ├── .gitignore
@@ -156,21 +158,32 @@ pytest tests/test_fetcher.py -v
 
 ## Troubleshooting
 
-### Display not updating?
+**See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for comprehensive solutions to:**
+
+- Python/dependency installation issues
+- OAuth credential generation & refresh
+- Display rendering problems
+- Cache database issues
+- Raspberry Pi deployment
+- GPIO & hardware errors
+- Systemd service problems
+- Network connectivity issues
+- Performance optimization
+- And more...
+
+Quick fixes:
 ```bash
+# Display not updating?
 journalctl -u epaper-calendar -f
-systemctl restart epaper-calendar
-```
 
-### OAuth token expired?
-```bash
-python scripts/setup_oauth.py
-```
+# OAuth token expired?
+python scripts/setup_oauth.py --refresh
 
-### Cache issues?
-```bash
-rm events_cache.db
-systemctl restart epaper-calendar
+# Cache issues?
+rm events_cache.db && systemctl restart epaper-calendar
+
+# Full status check
+python src/main.py --status
 ```
 
 ## Performance
@@ -188,6 +201,23 @@ systemctl restart epaper-calendar
 - **Refresh time**: ~5-8 seconds
 - **Color support**: Red, Black, White, Grey
 
+## Documentation
+
+Complete documentation is available in the [docs/](docs/) folder:
+
+- **[QUICKSTART.md](QUICKSTART.md)** - Get running in 5 minutes (local testing)
+- **[docs/SETUP.md](docs/SETUP.md)** - Full development environment setup
+- **[docs/OAUTH_SETUP.md](docs/OAUTH_SETUP.md)** - Google OAuth credential generation
+- **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** - Step-by-step Raspberry Pi deployment
+- **[docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)** - Solutions to common issues
+- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** - System design & component overview
+
+## Quick Links
+
+- **GitHub**: https://github.com/hopehubris/epaper-calendar
+- **Issues**: Report bugs or request features
+- **Discussions**: Ask questions or share ideas
+
 ## Version
 
 **v0.1.0** (Initial release)
@@ -198,5 +228,5 @@ MIT
 
 ## Contributors
 
-- Ashi (calendar owner)
+- Ashi (calendar owner, primary developer)
 - Sindi (calendar owner)
