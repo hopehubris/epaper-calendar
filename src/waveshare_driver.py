@@ -62,29 +62,49 @@ class WaveshareDriver:
             return
         
         try:
-            # Setup GPIO
-            GPIO.setmode(GPIO.BCM)
-            GPIO.setwarnings(False)
-            
-            # Configure pins
-            GPIO.setup(self.cs_pin, GPIO.OUT)
-            GPIO.setup(self.clk_pin, GPIO.OUT)
-            GPIO.setup(self.mosi_pin, GPIO.OUT)
-            GPIO.setup(self.dc_pin, GPIO.OUT)
-            GPIO.setup(self.rst_pin, GPIO.OUT)
-            GPIO.setup(self.busy_pin, GPIO.IN)
-            
-            # Set initial states
-            GPIO.output(self.cs_pin, GPIO.HIGH)
-            GPIO.output(self.clk_pin, GPIO.LOW)
-            GPIO.output(self.dc_pin, GPIO.LOW)
-            
-            logger.info("GPIO initialized")
-            self.initialized = True
+            # Try to setup GPIO (may fail on Pi 5 with old RPi.GPIO)
+            try:
+                GPIO.setmode(GPIO.BCM)
+                GPIO.setwarnings(False)
+                
+                # Configure pins
+                GPIO.setup(self.cs_pin, GPIO.OUT)
+                GPIO.setup(self.clk_pin, GPIO.OUT)
+                GPIO.setup(self.mosi_pin, GPIO.OUT)
+                GPIO.setup(self.dc_pin, GPIO.OUT)
+                GPIO.setup(self.rst_pin, GPIO.OUT)
+                GPIO.setup(self.busy_pin, GPIO.IN)
+                
+                # Set initial states
+                GPIO.output(self.cs_pin, GPIO.HIGH)
+                GPIO.output(self.clk_pin, GPIO.LOW)
+                GPIO.output(self.dc_pin, GPIO.LOW)
+                
+                logger.info("GPIO initialized via RPi.GPIO")
+                self.initialized = True
+                
+            except (RuntimeError, ValueError) as e:
+                # Pi 5 compatibility: RPi.GPIO.setmode() fails on Pi 5
+                # Fall back to gpiozero or simulation mode
+                logger.warning(f"RPi.GPIO setmode failed (Pi 5 compatibility): {e}")
+                logger.info("Attempting fallback hardware initialization...")
+                
+                # Try gpiozero as fallback
+                try:
+                    from gpiozero import LED, DigitalInputDevice
+                    self.gpio_dc = LED(self.dc_pin)
+                    self.gpio_rst = LED(self.rst_pin)
+                    self.gpio_busy = DigitalInputDevice(self.busy_pin)
+                    logger.info("GPIO initialized via gpiozero")
+                    self.initialized = True
+                except (ImportError, Exception) as ge:
+                    logger.warning(f"gpiozero fallback also failed: {ge}")
+                    logger.info("No GPIO driver available, using simulation mode")
+                    self.initialized = False
             
         except Exception as e:
-            logger.error(f"GPIO initialization failed: {e}")
-            raise
+            logger.error(f"Hardware initialization failed: {e}")
+            logger.info("Falling back to simulation mode")
     
     def display_image(self, image: Image.Image) -> bool:
         """Display image on e-paper display.
