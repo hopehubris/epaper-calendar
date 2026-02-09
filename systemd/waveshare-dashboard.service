@@ -1,0 +1,41 @@
+[Unit]
+Description=Waveshare E-Paper Dashboard (v0.2.0)
+Documentation=https://github.com/yourusername/epaper-calendar
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=pi
+WorkingDirectory=/home/pi/epaper-calendar
+Environment="PATH=/home/pi/epaper-calendar/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Environment="PYTHONUNBUFFERED=1"
+
+# Main execution
+ExecStart=/home/pi/epaper-calendar/venv/bin/python3 -u /home/pi/epaper-calendar/src/main.py --config /home/pi/epaper-calendar/config/dashboard.yaml
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=epaper-dashboard
+
+# Restart policy
+Restart=on-failure
+RestartSec=30
+StartLimitInterval=3600
+StartLimitBurst=5
+
+# Process limits
+CPUQuota=50%
+MemoryMax=512M
+TimeoutStartSec=300
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/home/pi/epaper-calendar /tmp
+
+[Install]
+WantedBy=multi-user.target

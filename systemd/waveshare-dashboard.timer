@@ -1,0 +1,22 @@
+[Unit]
+Description=Waveshare E-Paper Dashboard Timer (15-minute updates)
+Documentation=https://github.com/yourusername/epaper-calendar
+Requires=waveshare-dashboard.service
+After=network-online.target
+
+[Timer]
+# Run every 15 minutes
+OnBootSec=2min
+OnUnitActiveSec=15min
+
+# Use monotonic timer (more reliable on RPi)
+Persistent=true
+
+# Randomize start time to avoid thundering herd
+RandomizedDelaySec=30s
+
+# Ensure timer survives system suspend
+WakeSystem=true
+
+[Install]
+WantedBy=timers.target
