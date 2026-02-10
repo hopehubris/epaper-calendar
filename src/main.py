@@ -16,6 +16,7 @@ from src.calendar_fetcher import CalendarFetcher
 from src.display_renderer import DisplayRenderer, AtAGlanceRenderer
 from src.display_renderer_family import FamilyCalendarRenderer
 from src.display_renderer_week import WeekOverviewRenderer
+from src.display_renderer_threecolumn import ThreeColumnRenderer
 from src.display_renderer_dashboard import DashboardRenderer
 from src.stock_fetcher import StockFetcher
 from src.weather_fetcher import WeatherFetcher
@@ -32,8 +33,9 @@ class CalendarDashboard:
     MODE_GLANCE = "glance"
     MODE_FAMILY = "family"
     MODE_WEEK = "week"
+    MODE_3COL = "3col"
     MODE_DASHBOARD = "dashboard"
-    DEFAULT_MODE = MODE_WEEK  # Default to week overview view
+    DEFAULT_MODE = MODE_3COL  # Default to 3-column layout
     
     def __init__(self, display_mode: str = DEFAULT_MODE, 
                  stock_tickers: Optional[List[str]] = None):
@@ -80,6 +82,11 @@ class CalendarDashboard:
             )
         elif display_mode == self.MODE_WEEK:
             self.renderer = WeekOverviewRenderer(
+                config.DISPLAY_WIDTH,
+                config.DISPLAY_HEIGHT
+            )
+        elif display_mode == self.MODE_3COL:
+            self.renderer = ThreeColumnRenderer(
                 config.DISPLAY_WIDTH,
                 config.DISPLAY_HEIGHT
             )
@@ -148,6 +155,10 @@ class CalendarDashboard:
                 img = self.renderer.render(ashi_events, sindi_events, 
                                          stocks=stocks, weather=weather, 
                                          update_time=start_time)
+            elif self.display_mode == self.MODE_3COL:
+                img = self.renderer.render(ashi_events, sindi_events, 
+                                         weather=weather, 
+                                         update_time=start_time)
             else:
                 img = self.renderer.render(ashi_events, sindi_events, start_time)
             
@@ -186,8 +197,9 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description="E-Paper Calendar Dashboard")
-    parser.add_argument("--mode", choices=["6week", "glance", "family", "week", "dashboard"], default="week",
-                       help="Display mode: '6week' (grid), 'glance', 'family', 'week' (today/this week/next week), 'dashboard'")
+    parser.add_argument("--mode", choices=["6week", "glance", "family", "week", "3col", "dashboard"], 
+                       default="3col",
+                       help="Display mode: '3col' (3-column), 'week', 'family', '6week', 'glance', 'dashboard'")
     parser.add_argument("--stocks", nargs="+", default=["NFLX", "MSFT"],
                        help="Stock tickers to show in dashboard mode (e.g., --stocks AAPL MSFT)")
     args = parser.parse_args()
