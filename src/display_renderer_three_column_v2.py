@@ -157,70 +157,67 @@ class ThreeColumnV2Renderer:
     def _render_left_top(self, draw: ImageDraw.ImageDraw, today: datetime,
                         current_weather: Optional[Dict],
                         forecast: Optional[List[Dict]] = None):
-        """Render date and current weather in top half of left column."""
+        """Render date and current weather in top half of left column (clean grid layout)."""
         x_start = self.col1_x + 10
         y = 10
         
-        # Date (large)
-        date_str = today.strftime("%a").upper()
-        draw.text((x_start, y), date_str, font=self.font_xl,
+        # Date line (Day, Month DD)
+        date_str = today.strftime("%a, %b %d").upper()
+        draw.text((x_start, y), date_str, font=self.font_lg,
                  fill=self.COLORS["black"])
+        y += 22
         
-        # Full date below
-        date_full = today.strftime("%b %d, %Y")
-        y += 36
-        draw.text((x_start, y), date_full, font=self.font_med,
-                 fill=self.COLORS["dark_grey"])
-        
-        # Current weather
-        y += 28
+        # Current weather section (temp + condition on same line)
         if current_weather:
             temp = current_weather.get('temp', '--')
-            condition = current_weather.get('condition', 'Unknown')[:20]
-            wind = current_weather.get('wind', '')
-            precip = current_weather.get('precip', '')
+            condition = current_weather.get('condition', 'Unknown')[:15]
+            icon = self._get_weather_icon(condition)
             
-            # Temperature (extra large)
-            draw.text((x_start, y), f"{temp}°", font=self.font_xl,
+            # Current: Temp + Icon + Condition inline
+            current_str = f"{temp}° {icon}  {condition}"
+            draw.text((x_start, y), current_str, font=self.font_med,
                      fill=self.COLORS["black"])
+            y += 18
+        
+        # Forecast header
+        y += 4
+        draw.text((x_start, y), "Forecast:", font=self.font_sm,
+                 fill=self.COLORS["dark_grey"])
+        y += 14
+        
+        # 3-day forecast in compact grid (Day Temp | Day Temp | Day Temp)
+        if forecast:
+            forecast_line = ""
+            for i, day_forecast in enumerate(forecast[:3]):  # Show next 3 days
+                day_name = day_forecast.get('day', f'Day {i+1}')[:3]
+                high = day_forecast.get('high', '--')
+                cond = day_forecast.get('condition', 'Unknown')
+                icon = self._get_weather_icon(cond)
+                
+                forecast_line += f"{day_name} {high}° {icon}     "
             
-            # Condition
-            y += 32
-            draw.text((x_start, y), condition, font=self.font_lg,
+            draw.text((x_start, y), forecast_line.strip(), font=self.font_xs,
                      fill=self.COLORS["dark_grey"])
+            y += 14
+        
+        # Additional details (wind, precip)
+        current_weather_obj = current_weather
+        if current_weather_obj:
+            wind = current_weather_obj.get('wind', '')
+            precip = current_weather_obj.get('precip', '')
             
-            # 4-day forecast (compact with icons)
-            y += 22
-            if forecast:
-                for i, day_forecast in enumerate(forecast[:4]):  # Show next 4 days
-                    day_name = day_forecast.get('day', f'Day {i+1}')[:3]
-                    high = day_forecast.get('high', '--')
-                    low = day_forecast.get('low', '--')
-                    cond = day_forecast.get('condition', 'Unknown')
-                    icon = self._get_weather_icon(cond)
-                    
-                    if i == 0:
-                        # First day on same line as current conditions
-                        draw.text((x_start + 150, y - 32), f"{day_name} {icon} {high}°", font=self.font_sm,
-                                 fill=self.COLORS["dark_grey"])
-                    else:
-                        # Other days on new lines with icon + temps
-                        draw.text((x_start, y), f"{day_name} {icon} {high}°/{low}°", font=self.font_xs,
-                                 fill=self.COLORS["dark_grey"])
-                        y += 12
-            
-            # Wind and precipitation
+            details = ""
             if wind:
-                y += 6
-                draw.text((x_start, y), f"Wind: {wind}", font=self.font_sm,
-                         fill=self.COLORS["dark_grey"])
-            
+                details += f"Wind: {wind}  "
             if precip:
-                y += 16
-                draw.text((x_start, y), f"Rain: {precip}", font=self.font_sm,
+                details += f"Rain: {precip}"
+            
+            if details:
+                y += 4
+                draw.text((x_start, y), details, font=self.font_xs,
                          fill=self.COLORS["dark_grey"])
         else:
-            draw.text((x_start, y), "No weather", font=self.font_sm,
+            draw.text((x_start, y), "No weather data", font=self.font_sm,
                      fill=self.COLORS["grey"])
     
     def _render_left_bottom(self, draw: ImageDraw.ImageDraw,
