@@ -15,6 +15,7 @@ from src.cache_manager import CacheManager
 from src.calendar_fetcher import CalendarFetcher
 from src.display_renderer import DisplayRenderer, AtAGlanceRenderer
 from src.display_renderer_family import FamilyCalendarRenderer
+from src.display_renderer_week import WeekOverviewRenderer
 from src.display_renderer_dashboard import DashboardRenderer
 from src.stock_fetcher import StockFetcher
 from src.weather_fetcher import WeatherFetcher
@@ -30,8 +31,9 @@ class CalendarDashboard:
     MODE_6WEEK = "6week"
     MODE_GLANCE = "glance"
     MODE_FAMILY = "family"
+    MODE_WEEK = "week"
     MODE_DASHBOARD = "dashboard"
-    DEFAULT_MODE = MODE_FAMILY  # Default to family calendar view
+    DEFAULT_MODE = MODE_WEEK  # Default to week overview view
     
     def __init__(self, display_mode: str = DEFAULT_MODE, 
                  stock_tickers: Optional[List[str]] = None):
@@ -76,12 +78,17 @@ class CalendarDashboard:
                 config.DISPLAY_WIDTH,
                 config.DISPLAY_HEIGHT
             )
+        elif display_mode == self.MODE_WEEK:
+            self.renderer = WeekOverviewRenderer(
+                config.DISPLAY_WIDTH,
+                config.DISPLAY_HEIGHT
+            )
         elif display_mode == self.MODE_DASHBOARD:
             self.renderer = DashboardRenderer(
                 config.DISPLAY_WIDTH,
                 config.DISPLAY_HEIGHT
             )
-        else:  # MODE_FAMILY (default)
+        else:  # MODE_FAMILY
             self.renderer = FamilyCalendarRenderer(
                 config.DISPLAY_WIDTH,
                 config.DISPLAY_HEIGHT
@@ -179,8 +186,8 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description="E-Paper Calendar Dashboard")
-    parser.add_argument("--mode", choices=["6week", "glance", "family", "dashboard"], default="family",
-                       help="Display mode: '6week' (grid), 'glance', 'family', 'dashboard' (with stocks)")
+    parser.add_argument("--mode", choices=["6week", "glance", "family", "week", "dashboard"], default="week",
+                       help="Display mode: '6week' (grid), 'glance', 'family', 'week' (today/this week/next week), 'dashboard'")
     parser.add_argument("--stocks", nargs="+", default=["NFLX", "MSFT"],
                        help="Stock tickers to show in dashboard mode (e.g., --stocks AAPL MSFT)")
     args = parser.parse_args()
