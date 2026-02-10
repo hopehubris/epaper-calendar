@@ -108,11 +108,11 @@ class ThreeColumnV2Renderer:
         # Next week events
         self._render_right_column(draw, all_events, ashi_events, today)
         
-        # Footer: Update time
+        # Footer: Update time (larger and more visible)
         if update_time:
-            update_str = f"Updated: {update_time.strftime('%H:%M')}"
-            draw.text((10, self.height - 12), update_str,
-                     font=self.font_xs, fill=self.COLORS["grey"])
+            update_str = f"Updated: {update_time.strftime('%b %d at %H:%M')}"
+            draw.text((10, self.height - 18), update_str,
+                     font=self.font_sm, fill=self.COLORS["dark_grey"])
         
         return img
     
