@@ -187,7 +187,7 @@ class ThreeColumnV2Renderer:
                     break
                 
                 title = evt.get('summary') or evt.get('title') or 'Untitled'
-                title = title[:16]  # Match middle/right column title length
+                title = title[:28]  # Allow longer titles (was 16, now 28)
                 
                 # Who: Ashi or Sindi (full name)
                 who = "Ashi" if evt in ashi_events else "Sindi"
@@ -243,7 +243,7 @@ class ThreeColumnV2Renderer:
                         break
                     
                     title = evt.get('summary') or evt.get('title') or 'Untitled'
-                    title = title[:16]  # Allow longer titles
+                    title = title[:20]  # Allow longer titles in middle column
                     
                     # Who (full name)
                     who = "Ashi" if evt in ashi_events else "Sindi"
@@ -301,7 +301,7 @@ class ThreeColumnV2Renderer:
                         break
                     
                     title = evt.get('summary') or evt.get('title') or 'Untitled'
-                    title = title[:16]  # Allow longer titles
+                    title = title[:20]  # Allow longer titles in right column
                     
                     # Who (full name)
                     who = "Ashi" if evt in ashi_events else "Sindi"
