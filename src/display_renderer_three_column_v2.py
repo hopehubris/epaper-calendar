@@ -28,6 +28,38 @@ class ThreeColumnV2Renderer:
         "dark_grey": (100, 100, 100),
     }
     
+    # Weather condition to icon mapping (Unicode symbols)
+    WEATHER_ICONS = {
+        "sunny": "☀",
+        "clear": "☀",
+        "partly cloudy": "⛅",
+        "cloudy": "☁",
+        "cloud": "☁",
+        "rain": "🌧",
+        "rainy": "🌧",
+        "drizzle": "🌦",
+        "thunderstorm": "⛈",
+        "storm": "⛈",
+        "snow": "❄",
+        "snowy": "❄",
+        "sleet": "🌨",
+        "wind": "💨",
+        "hail": "🌨",
+        "unknown": "?",
+    }
+    
+    def _get_weather_icon(self, condition: str) -> str:
+        """Get weather icon for condition."""
+        condition_lower = condition.lower() if condition else "unknown"
+        # Check for exact match first
+        if condition_lower in self.WEATHER_ICONS:
+            return self.WEATHER_ICONS[condition_lower]
+        # Check for partial matches
+        for key, icon in self.WEATHER_ICONS.items():
+            if key in condition_lower:
+                return icon
+        return self.WEATHER_ICONS["unknown"]
+    
     def __init__(self, width: int = 800, height: int = 480):
         """Initialize renderer."""
         self.width = width
@@ -157,22 +189,23 @@ class ThreeColumnV2Renderer:
             draw.text((x_start, y), condition, font=self.font_lg,
                      fill=self.COLORS["dark_grey"])
             
-            # 4-day forecast (compact)
+            # 4-day forecast (compact with icons)
             y += 22
             if forecast:
                 for i, day_forecast in enumerate(forecast[:4]):  # Show next 4 days
+                    day_name = day_forecast.get('day', f'Day {i+1}')[:3]
+                    high = day_forecast.get('high', '--')
+                    low = day_forecast.get('low', '--')
+                    cond = day_forecast.get('condition', 'Unknown')
+                    icon = self._get_weather_icon(cond)
+                    
                     if i == 0:
                         # First day on same line as current conditions
-                        day_name = day_forecast.get('day', 'Tomorrow')[:3]  # "Tomorrow" → "Tom"
-                        high = day_forecast.get('high', '--')
-                        draw.text((x_start + 150, y - 32), f"{day_name} {high}°", font=self.font_sm,
+                        draw.text((x_start + 150, y - 32), f"{day_name} {icon} {high}°", font=self.font_sm,
                                  fill=self.COLORS["dark_grey"])
                     else:
-                        # Other days on new lines
-                        day_name = day_forecast.get('day', f'Day {i+1}')[:3]
-                        high = day_forecast.get('high', '--')
-                        low = day_forecast.get('low', '--')
-                        draw.text((x_start, y), f"{day_name}: {high}°/{low}°", font=self.font_xs,
+                        # Other days on new lines with icon + temps
+                        draw.text((x_start, y), f"{day_name} {icon} {high}°/{low}°", font=self.font_xs,
                                  fill=self.COLORS["dark_grey"])
                         y += 12
             
