@@ -5,6 +5,7 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
+from typing import List, Optional
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -14,6 +15,8 @@ from src.cache_manager import CacheManager
 from src.calendar_fetcher import CalendarFetcher
 from src.display_renderer import DisplayRenderer, AtAGlanceRenderer
 from src.display_renderer_family import FamilyCalendarRenderer
+from src.display_renderer_dashboard import DashboardRenderer
+from src.stock_fetcher import StockFetcher
 from src.waveshare_driver import get_display_driver
 from src import utils
 
@@ -26,13 +29,16 @@ class CalendarDashboard:
     MODE_6WEEK = "6week"
     MODE_GLANCE = "glance"
     MODE_FAMILY = "family"
+    MODE_DASHBOARD = "dashboard"
     DEFAULT_MODE = MODE_FAMILY  # Default to family calendar view
     
-    def __init__(self, display_mode: str = DEFAULT_MODE):
+    def __init__(self, display_mode: str = DEFAULT_MODE, 
+                 stock_tickers: Optional[List[str]] = None):
         """Initialize dashboard.
         
         Args:
-            display_mode: "6week" for full grid, "glance" for at-a-glance view
+            display_mode: Display mode ("6week", "glance", "family", "dashboard")
+            stock_tickers: Stock tickers to show in dashboard mode
         """
         logger.info(f"Initializing Calendar Dashboard (mode: {display_mode})")
         
@@ -51,6 +57,10 @@ class CalendarDashboard:
             self.cache
         )
         
+        # Initialize stock fetcher for dashboard mode
+        self.stock_fetcher = StockFetcher()
+        self.stock_tickers = stock_tickers or ["NFLX", "MSFT"]
+        
         # Initialize appropriate renderer
         self.display_mode = display_mode
         if display_mode == self.MODE_6WEEK:
@@ -61,6 +71,11 @@ class CalendarDashboard:
             )
         elif display_mode == self.MODE_GLANCE:
             self.renderer = AtAGlanceRenderer(
+                config.DISPLAY_WIDTH,
+                config.DISPLAY_HEIGHT
+            )
+        elif display_mode == self.MODE_DASHBOARD:
+            self.renderer = DashboardRenderer(
                 config.DISPLAY_WIDTH,
                 config.DISPLAY_HEIGHT
             )
@@ -105,9 +120,23 @@ class CalendarDashboard:
             else:
                 logger.warning("Sindi calendar: offline (using cache)")
             
+            # Fetch stocks and weather if dashboard mode
+            stocks = None
+            weather = None
+            if self.display_mode == self.MODE_DASHBOARD:
+                logger.info("Fetching stock prices...")
+                stocks = self.stock_fetcher.get_multiple_prices(self.stock_tickers)
+                logger.info(f"Fetched {len(stocks)} stocks")
+                # TODO: Add weather fetching
+            
             # Render display
             logger.info("Rendering display...")
-            img = self.renderer.render(ashi_events, sindi_events, start_time)
+            if self.display_mode == self.MODE_DASHBOARD:
+                img = self.renderer.render(ashi_events, sindi_events, 
+                                         stocks=stocks, weather=weather, 
+                                         update_time=start_time)
+            else:
+                img = self.renderer.render(ashi_events, sindi_events, start_time)
             
             # Display image
             logger.info("Updating hardware display...")
@@ -144,17 +173,22 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description="E-Paper Calendar Dashboard")
-    parser.add_argument("--mode", choices=["6week", "glance", "family"], default="family",
-                       help="Display mode: '6week' (full grid), 'glance' (at-a-glance), 'family' (smart family display)")
+    parser.add_argument("--mode", choices=["6week", "glance", "family", "dashboard"], default="family",
+                       help="Display mode: '6week' (grid), 'glance', 'family', 'dashboard' (with stocks)")
+    parser.add_argument("--stocks", nargs="+", default=["NFLX", "MSFT"],
+                       help="Stock tickers to show in dashboard mode (e.g., --stocks AAPL MSFT)")
     args = parser.parse_args()
     
     logger.info("=" * 60)
     logger.info("E-Paper Calendar Dashboard v0.1.0")
     logger.info(f"Start time: {datetime.now().isoformat()}")
     logger.info(f"Display mode: {args.mode}")
+    if args.mode == "dashboard":
+        logger.info(f"Stocks: {', '.join(args.stocks)}")
     logger.info("=" * 60)
     
-    dashboard = CalendarDashboard(display_mode=args.mode)
+    dashboard = CalendarDashboard(display_mode=args.mode, 
+                                 stock_tickers=args.stocks if args.mode == "dashboard" else None)
     
     try:
         dashboard.run_once()
