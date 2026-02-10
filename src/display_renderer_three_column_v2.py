@@ -65,6 +65,7 @@ class ThreeColumnV2Renderer:
     
     def render(self, ashi_events: List[Dict], sindi_events: List[Dict],
                current_weather: Optional[Dict] = None,
+               forecast: Optional[List[Dict]] = None,
                update_time: Optional[datetime] = None) -> Image.Image:
         """Render three-column layout.
         
@@ -72,6 +73,7 @@ class ThreeColumnV2Renderer:
             ashi_events: Ashi's calendar events
             sindi_events: Sindi's calendar events
             current_weather: Current weather dict {temp, condition}
+            forecast: 4-day forecast list of dicts {day, high, low, condition}
             update_time: Last update time
             
         Returns:
@@ -94,8 +96,8 @@ class ThreeColumnV2Renderer:
                  fill=self.COLORS["light_grey"], width=1)
         
         # LEFT COLUMN (40%)
-        # Top half: Date + Weather
-        self._render_left_top(draw, today, current_weather)
+        # Top half: Date + Weather + Forecast
+        self._render_left_top(draw, today, current_weather, forecast)
         
         # Bottom half: Today's events
         self._render_left_bottom(draw, all_events, ashi_events, today)
@@ -121,7 +123,8 @@ class ThreeColumnV2Renderer:
         return img
     
     def _render_left_top(self, draw: ImageDraw.ImageDraw, today: datetime,
-                        current_weather: Optional[Dict]):
+                        current_weather: Optional[Dict],
+                        forecast: Optional[List[Dict]] = None):
         """Render date and current weather in top half of left column."""
         x_start = self.col1_x + 10
         y = 10
@@ -137,11 +140,11 @@ class ThreeColumnV2Renderer:
         draw.text((x_start, y), date_full, font=self.font_med,
                  fill=self.COLORS["dark_grey"])
         
-        # Current weather (expanded to fill space)
+        # Current weather
         y += 28
         if current_weather:
             temp = current_weather.get('temp', '--')
-            condition = current_weather.get('condition', 'Unknown')[:20]  # Longer condition text
+            condition = current_weather.get('condition', 'Unknown')[:20]
             wind = current_weather.get('wind', '')
             precip = current_weather.get('precip', '')
             
@@ -149,20 +152,38 @@ class ThreeColumnV2Renderer:
             draw.text((x_start, y), f"{temp}°", font=self.font_xl,
                      fill=self.COLORS["black"])
             
-            # Condition (larger font)
+            # Condition
             y += 32
             draw.text((x_start, y), condition, font=self.font_lg,
                      fill=self.COLORS["dark_grey"])
             
-            # Wind (if available)
+            # 4-day forecast (compact)
+            y += 22
+            if forecast:
+                for i, day_forecast in enumerate(forecast[:4]):  # Show next 4 days
+                    if i == 0:
+                        # First day on same line as current conditions
+                        day_name = day_forecast.get('day', 'Tomorrow')[:3]  # "Tomorrow" → "Tom"
+                        high = day_forecast.get('high', '--')
+                        draw.text((x_start + 150, y - 32), f"{day_name} {high}°", font=self.font_sm,
+                                 fill=self.COLORS["dark_grey"])
+                    else:
+                        # Other days on new lines
+                        day_name = day_forecast.get('day', f'Day {i+1}')[:3]
+                        high = day_forecast.get('high', '--')
+                        low = day_forecast.get('low', '--')
+                        draw.text((x_start, y), f"{day_name}: {high}°/{low}°", font=self.font_xs,
+                                 fill=self.COLORS["dark_grey"])
+                        y += 12
+            
+            # Wind and precipitation
             if wind:
-                y += 22
+                y += 6
                 draw.text((x_start, y), f"Wind: {wind}", font=self.font_sm,
                          fill=self.COLORS["dark_grey"])
             
-            # Precipitation (if available)
             if precip:
-                y += 18
+                y += 16
                 draw.text((x_start, y), f"Rain: {precip}", font=self.font_sm,
                          fill=self.COLORS["dark_grey"])
         else:

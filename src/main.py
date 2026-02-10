@@ -193,8 +193,11 @@ class CalendarDashboard:
             elif self.display_mode == self.MODE_3COL_V2:
                 logger.info("Fetching weather for 3-column view...")
                 weather = self.weather_fetcher.get_current_weather()
+                forecast = self.weather_fetcher.get_forecast_3day()
                 if weather:
                     logger.info(f"Current: {weather.get('temp')}° {weather.get('condition')}")
+                if forecast:
+                    logger.info(f"Forecast: {len(forecast)} days available")
             
             # Render display
             logger.info("Rendering display...")
@@ -214,6 +217,7 @@ class CalendarDashboard:
             elif self.display_mode == self.MODE_3COL_V2:
                 img = self.renderer.render(ashi_events, sindi_events,
                                          current_weather=weather,
+                                         forecast=forecast,
                                          update_time=start_time)
             elif self.display_mode == self.MODE_3COL:
                 img = self.renderer.render(ashi_events, sindi_events, 
