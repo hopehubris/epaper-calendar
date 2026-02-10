@@ -182,7 +182,7 @@ class ThreeColumnV2Renderer:
         today_events = self._get_events_by_date(all_events, today)
         
         if today_events:
-            for evt in today_events[:2]:  # Max 2 events for today (leave room for time/person)
+            for evt in today_events:  # Show ALL events for today
                 if y > y_max:
                     break
                 
@@ -237,8 +237,8 @@ class ThreeColumnV2Renderer:
                          fill=self.COLORS["black"])
                 y += 24
                 
-                # Events for this day (max 1 due to larger fonts)
-                for evt in day_events[:1]:
+                # Events for this day (show ALL events)
+                for evt in day_events:
                     if y > y_max:
                         break
                     
@@ -295,8 +295,8 @@ class ThreeColumnV2Renderer:
                          fill=self.COLORS["black"])
                 y += 24
                 
-                # Events for this day (max 1 due to larger fonts)
-                for evt in day_events[:1]:
+                # Events for this day (show ALL events)
+                for evt in day_events:
                     if y > y_max:
                         break
                     
