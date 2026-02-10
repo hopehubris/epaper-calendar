@@ -188,11 +188,11 @@ class ThreeColumnV2Renderer:
                 full_title = f"{who}{title}"
                 lines = self._wrap_text(full_title, max_width=15)
                 
-                draw.text((x_start + 50, y), lines[0], font=self.font_event,
+                draw.text((x_start + 75, y), lines[0], font=self.font_event,
                          fill=color)
                 
                 if len(lines) > 1:
-                    draw.text((x_start + 50, y + 15), lines[1], font=self.font_event,
+                    draw.text((x_start + 75, y + 15), lines[1], font=self.font_event,
                              fill=color)
                     y += 30
                 else:
@@ -246,13 +246,13 @@ class ThreeColumnV2Renderer:
                     draw.text((x_start + 5, y), f"{time_str} {who}", font=self.font_event_time,
                              fill=self.COLORS["dark_grey"])
                     
-                    # Title - wrap to 2 lines if needed
+                    # Title - wrap to 2 lines if needed (add more space from time)
                     lines = self._wrap_text(title, max_width=13)
-                    draw.text((x_start + 65, y), lines[0], font=self.font_event,
+                    draw.text((x_start + 75, y), lines[0], font=self.font_event,
                              fill=color)
                     
                     if len(lines) > 1:
-                        draw.text((x_start + 65, y + 15), lines[1], font=self.font_event,
+                        draw.text((x_start + 75, y + 15), lines[1], font=self.font_event,
                                  fill=color)
                         y += 32
                     else:
@@ -308,13 +308,13 @@ class ThreeColumnV2Renderer:
                     draw.text((x_start + 5, y), f"{time_str} {who}", font=self.font_event_time,
                              fill=self.COLORS["dark_grey"])
                     
-                    # Title - wrap to 2 lines if needed
+                    # Title - wrap to 2 lines if needed (add more space from time)
                     lines = self._wrap_text(title, max_width=13)
-                    draw.text((x_start + 65, y), lines[0], font=self.font_event,
+                    draw.text((x_start + 75, y), lines[0], font=self.font_event,
                              fill=color)
                     
                     if len(lines) > 1:
-                        draw.text((x_start + 65, y + 15), lines[1], font=self.font_event,
+                        draw.text((x_start + 75, y + 15), lines[1], font=self.font_event,
                                  fill=color)
                         y += 32
                     else:
