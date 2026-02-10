@@ -13,6 +13,7 @@ from src import config
 from src.cache_manager import CacheManager
 from src.calendar_fetcher import CalendarFetcher
 from src.display_renderer import DisplayRenderer, AtAGlanceRenderer
+from src.display_renderer_family import FamilyCalendarRenderer
 from src.waveshare_driver import get_display_driver
 from src import utils
 
@@ -24,7 +25,8 @@ class CalendarDashboard:
     # Display modes
     MODE_6WEEK = "6week"
     MODE_GLANCE = "glance"
-    DEFAULT_MODE = MODE_GLANCE  # Default to "at a glance" view
+    MODE_FAMILY = "family"
+    DEFAULT_MODE = MODE_FAMILY  # Default to family calendar view
     
     def __init__(self, display_mode: str = DEFAULT_MODE):
         """Initialize dashboard.
@@ -57,8 +59,13 @@ class CalendarDashboard:
                 config.DISPLAY_HEIGHT,
                 config.DISPLAY_COLOR_MODE
             )
-        else:  # MODE_GLANCE
+        elif display_mode == self.MODE_GLANCE:
             self.renderer = AtAGlanceRenderer(
+                config.DISPLAY_WIDTH,
+                config.DISPLAY_HEIGHT
+            )
+        else:  # MODE_FAMILY (default)
+            self.renderer = FamilyCalendarRenderer(
                 config.DISPLAY_WIDTH,
                 config.DISPLAY_HEIGHT
             )
@@ -137,8 +144,8 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description="E-Paper Calendar Dashboard")
-    parser.add_argument("--mode", choices=["6week", "glance"], default="glance",
-                       help="Display mode: '6week' for full grid, 'glance' for at-a-glance")
+    parser.add_argument("--mode", choices=["6week", "glance", "family"], default="family",
+                       help="Display mode: '6week' (full grid), 'glance' (at-a-glance), 'family' (smart family display)")
     args = parser.parse_args()
     
     logger.info("=" * 60)

@@ -382,12 +382,18 @@ class AtAGlanceRenderer:
     
     def render(self, ashi_events: List[Dict], sindi_events: List[Dict],
                update_time: Optional[datetime] = None) -> Image.Image:
-        """Render at-a-glance calendar view.
+        """Render calendar in family-friendly 'smart display' format.
+        
+        Layout:
+        - Top: Today's date (large)
+        - Upper: Today's events (prominent)
+        - Middle: Tomorrow and upcoming week (organized by date)
+        - Bottom: Legend
         
         Args:
-            ashi_events: Ashi's events (red color in legend)
-            sindi_events: Sindi's events (black)
-            update_time: Last update timestamp (matches DisplayRenderer signature)
+            ashi_events: Ashi's events (marked with red)
+            sindi_events: Sindi's events (marked with black)
+            update_time: Last update timestamp
             
         Returns:
             PIL Image (800x480)
@@ -396,16 +402,12 @@ class AtAGlanceRenderer:
         img = Image.new("RGB", (self.width, self.height), self.COLORS["white"])
         draw = ImageDraw.Draw(img)
         
-        # Layout zones
-        header_h = 60
-        today_h = 100
-        calendar_h = 260
-        footer_h = 60
-        
-        # ===== HEADER: Today's date =====
         today = datetime.now()
-        today_str = today.strftime("%A, %B %d")
-        draw.text((20, 10), today_str, font=self.font_xl, fill=self.COLORS["black"])
+        all_events = ashi_events + sindi_events
+        
+        # ===== HEADER: Today's date (LARGE) =====
+        today_str = today.strftime("%A, %B %d").upper()
+        draw.text((20, 8), today_str, font=self.font_xl, fill=self.COLORS["black"])
         
         # ===== TODAY'S EVENTS =====
         y = header_h + 5
