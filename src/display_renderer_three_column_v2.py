@@ -161,13 +161,13 @@ class ThreeColumnV2Renderer:
         x_start = self.col1_x + 10
         y = 10
         
-        # Date line (Day, Month DD)
+        # Date line (Day, Month DD) - LARGER
         date_str = today.strftime("%a, %b %d").upper()
-        draw.text((x_start, y), date_str, font=self.font_lg,
+        draw.text((x_start, y), date_str, font=self.font_xl,  # Increased from font_lg (32pt)
                  fill=self.COLORS["black"])
-        y += 22
+        y += 38
         
-        # Current weather section (temp + condition on same line)
+        # Current weather section (temp + condition on same line) - LARGER
         if current_weather:
             temp = current_weather.get('temp', '--')
             condition = current_weather.get('condition', 'Unknown')[:15]
@@ -175,30 +175,30 @@ class ThreeColumnV2Renderer:
             
             # Current: Temp + Icon + Condition inline
             current_str = f"{temp}° {icon}  {condition}"
-            draw.text((x_start, y), current_str, font=self.font_med,
+            draw.text((x_start, y), current_str, font=self.font_lg,  # Increased from font_med (16pt)
                      fill=self.COLORS["black"])
-            y += 18
+            y += 22
         
         # Forecast header
-        y += 4
-        draw.text((x_start, y), "Forecast:", font=self.font_sm,
+        y += 2
+        draw.text((x_start, y), "Forecast:", font=self.font_med,  # Increased from font_sm (13pt)
                  fill=self.COLORS["dark_grey"])
-        y += 14
+        y += 16
         
-        # 3-day forecast in compact grid (Day Temp | Day Temp | Day Temp)
+        # 3-day forecast (NOT compact - one per line with more spacing)
         if forecast:
-            forecast_line = ""
             for i, day_forecast in enumerate(forecast[:3]):  # Show next 3 days
                 day_name = day_forecast.get('day', f'Day {i+1}')[:3]
                 high = day_forecast.get('high', '--')
+                low = day_forecast.get('low', '--')
                 cond = day_forecast.get('condition', 'Unknown')
                 icon = self._get_weather_icon(cond)
                 
-                forecast_line += f"{day_name} {high}° {icon}     "
-            
-            draw.text((x_start, y), forecast_line.strip(), font=self.font_xs,
-                     fill=self.COLORS["dark_grey"])
-            y += 14
+                # Each forecast day on its own line with full spacing
+                forecast_str = f"{day_name}  {high}°/{low}°  {icon}"
+                draw.text((x_start, y), forecast_str, font=self.font_sm,  # Increased from font_xs (11pt)
+                         fill=self.COLORS["dark_grey"])
+                y += 14
         
         # Additional details (wind, precip)
         current_weather_obj = current_weather
