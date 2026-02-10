@@ -48,14 +48,14 @@ class ThreeColumnRenderer:
         self.col2_x = self.col_width + 10
         self.col3_x = (self.col_width * 2) + 10
         
-        # Load fonts
+        # Load fonts (increased sizes for better readability)
         try:
-            self.font_xl = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 48)
-            self.font_lg = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 24)
-            self.font_med = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 16)
-            self.font_sm = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 13)
-            self.font_xs = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 10)
-            self.font_tiny = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 8)
+            self.font_xl = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 56)
+            self.font_lg = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 28)
+            self.font_med = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 20)
+            self.font_sm = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16)
+            self.font_xs = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 13)
+            self.font_tiny = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 10)
         except (OSError, AttributeError):
             self.font_xl = ImageFont.load_default()
             self.font_lg = ImageFont.load_default()
@@ -108,16 +108,16 @@ class ThreeColumnRenderer:
                             weather: Optional[Dict]):
         """Render left column: Date, Weather, Today's Events."""
         x = self.col1_x
-        y = 15
+        y = 8
         
         # ===== DATE (Large) =====
         date_str = today.strftime("%m/%d/%y")
         draw.text((x, y), date_str, font=self.font_xl, fill=self.COLORS["black"])
-        y += 50
+        y += 60
         
         # ===== 3-DAY WEATHER FORECAST (Placeholder) =====
         draw.text((x, y), "WEATHER", font=self.font_med, fill=self.COLORS["black"])
-        y += 22
+        y += 26
         
         # Weather placeholder (ready for real API)
         weather_data = [
@@ -128,32 +128,32 @@ class ThreeColumnRenderer:
         
         for w in weather_data:
             weather_str = f"{w['day']} {w['temp']}"
-            draw.text((x, y), weather_str, font=self.font_sm, fill=self.COLORS["dark_grey"])
-            draw.text((x + 80, y), w['condition'][:8], font=self.font_xs, 
+            draw.text((x, y), weather_str, font=self.font_xs, fill=self.COLORS["dark_grey"])
+            draw.text((x + 85, y), w['condition'][:8], font=self.font_xs, 
                      fill=self.COLORS["dark_grey"])
-            y += 16
+            y += 18
         
         # ===== TODAY'S EVENTS (Large fonts for easy reading) =====
-        y += 10
+        y += 8
         draw.line([(x, y), (x + self.col_width - 20, y)], 
                  fill=self.COLORS["light_grey"], width=1)
-        y += 12
+        y += 10
         
         draw.text((x, y), "TODAY", font=self.font_lg, fill=self.COLORS["black"])
-        y += 28
+        y += 32
         
         today_events = self._get_events_by_date(all_events, ashi_events, today)
         if today_events:
-            for evt in today_events[:4]:  # Show max 4 today's events
+            for evt in today_events[:3]:  # Show max 3 today's events (reduced from 4 due to larger fonts)
                 time_str = self._format_time(evt)
                 title = evt.get('summary') or evt.get('title') or 'Untitled'
-                title = title[:20]
+                title = title[:18]
                 color = self.COLORS["ashi"] if evt in ashi_events else self.COLORS["sindi"]
                 
                 draw.text((x, y), f"{time_str}", font=self.font_sm, 
                          fill=self.COLORS["dark_grey"])
-                draw.text((x + 45, y), title, font=self.font_sm, fill=color)
-                y += 20
+                draw.text((x + 50, y), title, font=self.font_sm, fill=color)
+                y += 24
         else:
             draw.text((x, y), "No events", font=self.font_sm, fill=self.COLORS["grey"])
     
@@ -161,13 +161,13 @@ class ThreeColumnRenderer:
                               all_events: List[Dict], ashi_events: List[Dict]):
         """Render middle column: Rest of This Week."""
         x = self.col2_x
-        y = 15
+        y = 8
         
         draw.text((x, y), "THIS WEEK", font=self.font_med, fill=self.COLORS["black"])
-        y += 22
+        y += 26
         draw.line([(x, y), (x + self.col_width - 20, y)], 
                  fill=self.COLORS["light_grey"], width=1)
-        y += 12
+        y += 10
         
         # Show tomorrow through end of week
         for day_offset in range(1, 7):
@@ -182,18 +182,18 @@ class ThreeColumnRenderer:
                 day_label = check_date.strftime("%a").upper()
                 draw.text((x, y), day_label, font=self.font_sm, 
                          fill=self.COLORS["blue"])
-                y += 18
+                y += 20
                 
                 # Events (max 2 per day)
                 for evt in day_events[:2]:
                     time_str = self._format_time(evt)
                     title = evt.get('summary') or evt.get('title') or 'Untitled'
-                    title = title[:18]
+                    title = title[:16]
                     color = self.COLORS["ashi"] if evt in ashi_events else self.COLORS["sindi"]
                     
-                    draw.text((x + 5, y), f"{time_str} {title}", font=self.font_xs, 
+                    draw.text((x + 5, y), f"{time_str} {title}", font=self.font_sm, 
                              fill=color)
-                    y += 15
+                    y += 18
                 
                 y += 2
             
@@ -204,13 +204,13 @@ class ThreeColumnRenderer:
                              all_events: List[Dict], ashi_events: List[Dict]):
         """Render right column: Next Week and Beyond."""
         x = self.col3_x
-        y = 15
+        y = 8
         
         draw.text((x, y), "NEXT WEEK", font=self.font_med, fill=self.COLORS["black"])
-        y += 22
+        y += 26
         draw.line([(x, y), (x + self.col_width - 20, y)], 
                  fill=self.COLORS["light_grey"], width=1)
-        y += 12
+        y += 10
         
         # Show next week and beyond (7+ days out)
         for day_offset in range(7, 21):
@@ -220,20 +220,20 @@ class ThreeColumnRenderer:
             if day_events:
                 # Day header (abbreviated)
                 day_label = check_date.strftime("%a %m/%d")
-                draw.text((x, y), day_label, font=self.font_xs, 
+                draw.text((x, y), day_label, font=self.font_sm, 
                          fill=self.COLORS["blue"])
-                y += 16
+                y += 20
                 
                 # Events (max 1 per day for compactness)
                 for evt in day_events[:1]:
                     title = evt.get('summary') or evt.get('title') or 'Untitled'
-                    title = title[:16]
+                    title = title[:14]
                     color = self.COLORS["ashi"] if evt in ashi_events else self.COLORS["sindi"]
                     
-                    draw.text((x + 5, y), title, font=self.font_xs, fill=color)
-                    y += 14
+                    draw.text((x + 5, y), title, font=self.font_sm, fill=color)
+                    y += 16
                 
-                y += 1
+                y += 2
             
             if y > 430:
                 break
