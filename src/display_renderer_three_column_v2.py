@@ -176,27 +176,20 @@ class ThreeColumnV2Renderer:
                 title = evt.get('summary') or evt.get('title') or 'Untitled'
                 title = title[:20]  # Allow longer titles for wrapping
                 
-                # Who: Ashi or Sindi
-                who = "A: " if evt in ashi_events else "S: "
+                # Who: Ashi or Sindi (full name)
+                who = "Ashi" if evt in ashi_events else "Sindi"
                 color = self.COLORS["red"] if evt in ashi_events else self.COLORS["black"]
                 
-                # Time (bold, 18pt)
-                draw.text((x_start, y), time_str, font=self.font_event_time,
-                         fill=self.COLORS["dark_grey"])
+                # Line 1: Time + Title
+                draw.text((x_start, y), f"{time_str} - {title}", font=self.font_event,
+                         fill=color)
+                y += 18
                 
-                # Title with label - wrap to 2 lines if needed
-                full_title = f"{who}{title}"
-                lines = self._wrap_text(full_title, max_width=15)
-                
-                draw.text((x_start + 75, y), lines[0], font=self.font_event,
+                # Line 2: Who (person name)
+                draw.text((x_start, y), who, font=self.font_event,
                          fill=color)
                 
-                if len(lines) > 1:
-                    draw.text((x_start + 75, y + 15), lines[1], font=self.font_event,
-                             fill=color)
-                    y += 30
-                else:
-                    y += 24
+                y += 28
         else:
             draw.text((x_start, y), "No events", font=self.font_event,
                      fill=self.COLORS["grey"])
@@ -234,29 +227,25 @@ class ThreeColumnV2Renderer:
                         break
                     
                     title = evt.get('summary') or evt.get('title') or 'Untitled'
-                    title = title[:18]  # Allow longer titles for wrapping
+                    title = title[:16]  # Allow longer titles
                     
-                    # Who
-                    who = "A" if evt in ashi_events else "S"
+                    # Who (full name)
+                    who = "Ashi" if evt in ashi_events else "Sindi"
                     color = self.COLORS["red"] if evt in ashi_events else self.COLORS["black"]
                     
-                    # Time if available (18pt bold)
+                    # Time if available
                     time_str = self._format_time(evt)
                     
-                    draw.text((x_start + 5, y), f"{time_str} {who}", font=self.font_event_time,
-                             fill=self.COLORS["dark_grey"])
+                    # Line 1: Time - Title
+                    draw.text((x_start + 5, y), f"{time_str} - {title}", font=self.font_event,
+                             fill=color)
+                    y += 18
                     
-                    # Title - wrap to 2 lines if needed (add more space from time)
-                    lines = self._wrap_text(title, max_width=13)
-                    draw.text((x_start + 75, y), lines[0], font=self.font_event,
+                    # Line 2: Who (person name)
+                    draw.text((x_start + 5, y), who, font=self.font_event,
                              fill=color)
                     
-                    if len(lines) > 1:
-                        draw.text((x_start + 75, y + 15), lines[1], font=self.font_event,
-                                 fill=color)
-                        y += 32
-                    else:
-                        y += 26
+                    y += 28
                 
                 y += 6  # Space between days
             
@@ -296,29 +285,25 @@ class ThreeColumnV2Renderer:
                         break
                     
                     title = evt.get('summary') or evt.get('title') or 'Untitled'
-                    title = title[:18]  # Allow longer titles for wrapping
+                    title = title[:16]  # Allow longer titles
                     
-                    # Who
-                    who = "A" if evt in ashi_events else "S"
+                    # Who (full name)
+                    who = "Ashi" if evt in ashi_events else "Sindi"
                     color = self.COLORS["red"] if evt in ashi_events else self.COLORS["black"]
                     
-                    # Time if available (18pt bold)
+                    # Time if available
                     time_str = self._format_time(evt)
                     
-                    draw.text((x_start + 5, y), f"{time_str} {who}", font=self.font_event_time,
-                             fill=self.COLORS["dark_grey"])
+                    # Line 1: Time - Title
+                    draw.text((x_start + 5, y), f"{time_str} - {title}", font=self.font_event,
+                             fill=color)
+                    y += 18
                     
-                    # Title - wrap to 2 lines if needed (add more space from time)
-                    lines = self._wrap_text(title, max_width=13)
-                    draw.text((x_start + 75, y), lines[0], font=self.font_event,
+                    # Line 2: Who (person name)
+                    draw.text((x_start + 5, y), who, font=self.font_event,
                              fill=color)
                     
-                    if len(lines) > 1:
-                        draw.text((x_start + 75, y + 15), lines[1], font=self.font_event,
-                                 fill=color)
-                        y += 32
-                    else:
-                        y += 26
+                    y += 28
                 
                 y += 6  # Space between days
             
