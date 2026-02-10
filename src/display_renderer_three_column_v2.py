@@ -155,11 +155,11 @@ class ThreeColumnV2Renderer:
                            all_events: List[Dict], ashi_events: List[Dict],
                            today: datetime):
         """Render today's events in bottom half of left column."""
-        x_start = self.col1_x + 10
+        x_start = self.col1_x + 8
         y = (self.height // 2) + 8
         y_max = self.height - 20
         
-        # Header
+        # Header (matching middle/right columns)
         draw.text((x_start, y), "TODAY", font=self.font_med,
                  fill=self.COLORS["black"])
         y += 20
@@ -168,30 +168,32 @@ class ThreeColumnV2Renderer:
         today_events = self._get_events_by_date(all_events, today)
         
         if today_events:
-            for evt in today_events[:3]:  # Max 3 events (smaller count for larger fonts)
+            for evt in today_events[:2]:  # Max 2 events for today (leave room for time/person)
                 if y > y_max:
                     break
                 
-                time_str = self._format_time(evt)
                 title = evt.get('summary') or evt.get('title') or 'Untitled'
-                title = title[:20]  # Allow longer titles for wrapping
+                title = title[:16]  # Match middle/right column title length
                 
                 # Who: Ashi or Sindi (full name)
                 who = "Ashi" if evt in ashi_events else "Sindi"
                 color = self.COLORS["red"] if evt in ashi_events else self.COLORS["black"]
                 
-                # Line 1: Time + Title
-                draw.text((x_start, y), f"{time_str} - {title}", font=self.font_event,
+                # Time if available
+                time_str = self._format_time(evt)
+                
+                # Line 1: Time - Title (matching middle/right style)
+                draw.text((x_start + 5, y), f"{time_str} - {title}", font=self.font_event,
                          fill=color)
                 y += 18
                 
-                # Line 2: Who (person name)
-                draw.text((x_start, y), who, font=self.font_event,
+                # Line 2: Who (person name - same font)
+                draw.text((x_start + 5, y), who, font=self.font_event,
                          fill=color)
                 
                 y += 28
         else:
-            draw.text((x_start, y), "No events", font=self.font_event,
+            draw.text((x_start + 5, y), "No events", font=self.font_event,
                      fill=self.COLORS["grey"])
     
     def _render_middle_column(self, draw: ImageDraw.ImageDraw,
