@@ -381,15 +381,13 @@ class AtAGlanceRenderer:
             self.font_small = ImageFont.load_default()
     
     def render(self, ashi_events: List[Dict], sindi_events: List[Dict],
-               weather: Optional[Dict] = None, 
                update_time: Optional[datetime] = None) -> Image.Image:
         """Render at-a-glance calendar view.
         
         Args:
             ashi_events: Ashi's events (red color in legend)
             sindi_events: Sindi's events (black)
-            weather: Optional weather dict with 'temp', 'condition'
-            update_time: Last update timestamp
+            update_time: Last update timestamp (matches DisplayRenderer signature)
             
         Returns:
             PIL Image (800x480)
@@ -404,28 +402,47 @@ class AtAGlanceRenderer:
         calendar_h = 260
         footer_h = 60
         
-        # ===== HEADER: Today's date + weather =====
+        # ===== HEADER: Today's date =====
         today = datetime.now()
         today_str = today.strftime("%A, %B %d")
         draw.text((20, 10), today_str, font=self.font_xl, fill=self.COLORS["black"])
-        
-        # Weather on the right
-        if weather:
-            weather_str = f"{weather.get('temp', '??')}° {weather.get('condition', '')}"
-            draw.text((self.width - 200, 15), weather_str, font=self.font_medium, fill=self.COLORS["dark_grey"])
         
         # ===== TODAY'S EVENTS =====
         y = header_h + 5
         draw.text((20, y), "TODAY:", font=self.font_large, fill=self.COLORS["black"])
         y += 25
         
-        today_events = [e for e in (ashi_events + sindi_events) 
-                       if datetime.fromisoformat(e['start']).date() == today.date()]
+        # Parse today's events
+        today_events = []
+        for e in (ashi_events + sindi_events):
+            try:
+                # Handle both dict-based start times (from API) and ISO strings
+                if isinstance(e.get('start'), dict):
+                    start_str = e['start'].get('dateTime', '')
+                    if not start_str:
+                        continue  # Skip events without start time
+                    start_dt = datetime.fromisoformat(start_str)
+                else:
+                    start_str = e.get('start', '')
+                    if not start_str:
+                        continue
+                    start_dt = datetime.fromisoformat(start_str)
+                
+                if start_dt.date() == today.date():
+                    today_events.append(e)
+            except (ValueError, KeyError, TypeError):
+                # Skip malformed events
+                continue
         
         if today_events:
             for evt in today_events[:3]:  # Show max 3 events
-                start_time = datetime.fromisoformat(evt['start']).strftime("%H:%M")
-                title = evt['title'][:40]  # Truncate long titles
+                # Parse start time
+                if isinstance(evt.get('start'), dict):
+                    start_time = datetime.fromisoformat(evt['start']['dateTime']).strftime("%H:%M")
+                else:
+                    start_time = datetime.fromisoformat(evt['start']).strftime("%H:%M")
+                
+                title = evt.get('title', 'Untitled')[:40]  # Truncate long titles
                 color = self.COLORS["red"] if evt in ashi_events else self.COLORS["black"]
                 draw.text((40, y), f"{start_time} - {title}", font=self.font_small, fill=color)
                 y += 20
@@ -448,8 +465,25 @@ class AtAGlanceRenderer:
             draw.text((20, y), week_label, font=self.font_medium, fill=self.COLORS["black"])
             
             # Count events this week
-            week_events = [e for e in (ashi_events + sindi_events)
-                          if week_start.date() <= datetime.fromisoformat(e['start']).date() <= week_end.date()]
+            week_events = []
+            for e in (ashi_events + sindi_events):
+                try:
+                    # Parse event date
+                    if isinstance(e.get('start'), dict):
+                        start_str = e['start'].get('dateTime', '')
+                        if not start_str:
+                            continue
+                        evt_date = datetime.fromisoformat(start_str).date()
+                    else:
+                        start_str = e.get('start', '')
+                        if not start_str:
+                            continue
+                        evt_date = datetime.fromisoformat(start_str).date()
+                    
+                    if week_start.date() <= evt_date <= week_end.date():
+                        week_events.append(e)
+                except (ValueError, KeyError, TypeError):
+                    continue
             
             if week_events:
                 event_summary = f"{len(week_events)} events"
