@@ -17,6 +17,7 @@ from src.display_renderer import DisplayRenderer, AtAGlanceRenderer
 from src.display_renderer_family import FamilyCalendarRenderer
 from src.display_renderer_week import WeekOverviewRenderer
 from src.display_renderer_threecolumn import ThreeColumnRenderer
+from src.display_renderer_three_column_v2 import ThreeColumnV2Renderer
 from src.display_renderer_dashboard import DashboardRenderer
 from src.display_renderer_weather_forecast import WeatherForecastRenderer
 from src.display_renderer_calendar_weather import CalendarWeatherRenderer
@@ -36,10 +37,11 @@ class CalendarDashboard:
     MODE_FAMILY = "family"
     MODE_WEEK = "week"
     MODE_3COL = "3col"
+    MODE_3COL_V2 = "3col-v2"
     MODE_DASHBOARD = "dashboard"
     MODE_WEATHER = "weather"
     MODE_CAL_WEATHER = "calendar-weather"
-    DEFAULT_MODE = MODE_CAL_WEATHER  # Default to calendar + weather
+    DEFAULT_MODE = MODE_3COL_V2  # Default to 3-column v2 (calendar + weather)
     
     def __init__(self, display_mode: str = DEFAULT_MODE, 
                  stock_tickers: Optional[List[str]] = None):
@@ -91,6 +93,11 @@ class CalendarDashboard:
             )
         elif display_mode == self.MODE_3COL:
             self.renderer = ThreeColumnRenderer(
+                config.DISPLAY_WIDTH,
+                config.DISPLAY_HEIGHT
+            )
+        elif display_mode == self.MODE_3COL_V2:
+            self.renderer = ThreeColumnV2Renderer(
                 config.DISPLAY_WIDTH,
                 config.DISPLAY_HEIGHT
             )
@@ -183,6 +190,12 @@ class CalendarDashboard:
                 if weather_forecast:
                     logger.info(f"Forecast: {len(weather_forecast)} days")
             
+            elif self.display_mode == self.MODE_3COL_V2:
+                logger.info("Fetching weather for 3-column view...")
+                weather = self.weather_fetcher.get_current_weather()
+                if weather:
+                    logger.info(f"Current: {weather.get('temp')}° {weather.get('condition')}")
+            
             # Render display
             logger.info("Rendering display...")
             if self.display_mode == self.MODE_DASHBOARD:
@@ -196,6 +209,10 @@ class CalendarDashboard:
             elif self.display_mode == self.MODE_CAL_WEATHER:
                 img = self.renderer.render(ashi_events, sindi_events,
                                          weather_forecast=weather_forecast,
+                                         current_weather=weather,
+                                         update_time=start_time)
+            elif self.display_mode == self.MODE_3COL_V2:
+                img = self.renderer.render(ashi_events, sindi_events,
                                          current_weather=weather,
                                          update_time=start_time)
             elif self.display_mode == self.MODE_3COL:
@@ -240,9 +257,9 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description="E-Paper Calendar Dashboard")
-    parser.add_argument("--mode", choices=["6week", "glance", "family", "week", "3col", "dashboard", "weather", "calendar-weather"], 
-                       default="calendar-weather",
-                       help="Display mode: 'calendar-weather' (calendar+weather), 'dashboard', 'weather', 'family', '3col', 'week', 'glance', '6week'")
+    parser.add_argument("--mode", choices=["6week", "glance", "family", "week", "3col", "3col-v2", "dashboard", "weather", "calendar-weather"], 
+                       default="3col-v2",
+                       help="Display mode: '3col-v2' (40/30/30 three-column), 'calendar-weather', 'dashboard', 'weather', 'family', '3col', 'week', 'glance', '6week'")
     parser.add_argument("--stocks", nargs="+", default=["NFLX", "MSFT"],
                        help="Stock tickers to show in dashboard mode (e.g., --stocks AAPL MSFT)")
     args = parser.parse_args()
