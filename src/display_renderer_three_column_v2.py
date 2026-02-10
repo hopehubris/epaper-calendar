@@ -47,12 +47,19 @@ class ThreeColumnV2Renderer:
             self.font_xl = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 32)
             self.font_lg = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 16)
             self.font_med = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 13)
+            # Event fonts: larger and bold for readability
+            self.font_event_time = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 10)
+            self.font_event = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 12)
+            self.font_day_label = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 11)
             self.font_sm = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 11)
             self.font_xs = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 9)
         except (OSError, AttributeError):
             self.font_xl = ImageFont.load_default()
             self.font_lg = ImageFont.load_default()
             self.font_med = ImageFont.load_default()
+            self.font_event_time = ImageFont.load_default()
+            self.font_event = ImageFont.load_default()
+            self.font_day_label = ImageFont.load_default()
             self.font_sm = ImageFont.load_default()
             self.font_xs = ImageFont.load_default()
     
@@ -167,23 +174,23 @@ class ThreeColumnV2Renderer:
                 
                 time_str = self._format_time(evt)
                 title = evt.get('summary') or evt.get('title') or 'Untitled'
-                title = title[:20]  # Truncate for space
+                title = title[:18]  # Truncate for space
                 
                 # Who: Ashi or Sindi
                 who = "A: " if evt in ashi_events else "S: "
                 color = self.COLORS["red"] if evt in ashi_events else self.COLORS["black"]
                 
-                # Time (grey)
-                draw.text((x_start, y), time_str, font=self.font_xs,
+                # Time (bold, larger)
+                draw.text((x_start, y), time_str, font=self.font_event_time,
                          fill=self.COLORS["dark_grey"])
                 
-                # Title with label
-                draw.text((x_start + 40, y), f"{who}{title}", font=self.font_xs,
+                # Title with label (bold, larger)
+                draw.text((x_start + 40, y), f"{who}{title}", font=self.font_event,
                          fill=color)
                 
-                y += 14
+                y += 16
         else:
-            draw.text((x_start, y), "No events", font=self.font_xs,
+            draw.text((x_start, y), "No events", font=self.font_event,
                      fill=self.COLORS["grey"])
     
     def _render_middle_column(self, draw: ImageDraw.ImageDraw,
@@ -209,9 +216,9 @@ class ThreeColumnV2Renderer:
             if day_events:
                 # Day label
                 day_label = current_date.strftime("%a %m/%d").upper()
-                draw.text((x_start, y), day_label, font=self.font_sm,
+                draw.text((x_start, y), day_label, font=self.font_day_label,
                          fill=self.COLORS["black"])
-                y += 15
+                y += 16
                 
                 # Events for this day (max 2)
                 for evt in day_events[:2]:
@@ -219,7 +226,7 @@ class ThreeColumnV2Renderer:
                         break
                     
                     title = evt.get('summary') or evt.get('title') or 'Untitled'
-                    title = title[:18]  # Truncate for column
+                    title = title[:16]  # Truncate for column
                     
                     # Who
                     who = "A" if evt in ashi_events else "S"
@@ -228,14 +235,14 @@ class ThreeColumnV2Renderer:
                     # Time if available
                     time_str = self._format_time(evt)
                     
-                    draw.text((x_start + 5, y), f"{time_str} {who}", font=self.font_xs,
+                    draw.text((x_start + 5, y), f"{time_str} {who}", font=self.font_event_time,
                              fill=self.COLORS["dark_grey"])
-                    draw.text((x_start + 40, y), title, font=self.font_xs,
+                    draw.text((x_start + 40, y), title, font=self.font_event,
                              fill=color)
                     
-                    y += 13
+                    y += 15
                 
-                y += 3  # Space between days
+                y += 4  # Space between days
             
             current_date += timedelta(days=1)
     
@@ -263,9 +270,9 @@ class ThreeColumnV2Renderer:
             if day_events:
                 # Day label
                 day_label = current_date.strftime("%a %m/%d").upper()
-                draw.text((x_start, y), day_label, font=self.font_sm,
+                draw.text((x_start, y), day_label, font=self.font_day_label,
                          fill=self.COLORS["black"])
-                y += 15
+                y += 16
                 
                 # Events for this day (max 2)
                 for evt in day_events[:2]:
@@ -273,7 +280,7 @@ class ThreeColumnV2Renderer:
                         break
                     
                     title = evt.get('summary') or evt.get('title') or 'Untitled'
-                    title = title[:18]  # Truncate for column
+                    title = title[:16]  # Truncate for column
                     
                     # Who
                     who = "A" if evt in ashi_events else "S"
@@ -282,14 +289,14 @@ class ThreeColumnV2Renderer:
                     # Time if available
                     time_str = self._format_time(evt)
                     
-                    draw.text((x_start + 5, y), f"{time_str} {who}", font=self.font_xs,
+                    draw.text((x_start + 5, y), f"{time_str} {who}", font=self.font_event_time,
                              fill=self.COLORS["dark_grey"])
-                    draw.text((x_start + 40, y), title, font=self.font_xs,
+                    draw.text((x_start + 40, y), title, font=self.font_event,
                              fill=color)
                     
-                    y += 13
+                    y += 15
                 
-                y += 3  # Space between days
+                y += 4  # Space between days
             
             current_date += timedelta(days=1)
     
