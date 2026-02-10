@@ -174,7 +174,7 @@ class ThreeColumnV2Renderer:
                 
                 time_str = self._format_time(evt)
                 title = evt.get('summary') or evt.get('title') or 'Untitled'
-                title = title[:14]  # Truncate for space
+                title = title[:20]  # Allow longer titles for wrapping
                 
                 # Who: Ashi or Sindi
                 who = "A: " if evt in ashi_events else "S: "
@@ -184,11 +184,19 @@ class ThreeColumnV2Renderer:
                 draw.text((x_start, y), time_str, font=self.font_event_time,
                          fill=self.COLORS["dark_grey"])
                 
-                # Title with label (bold, 18pt)
-                draw.text((x_start + 50, y), f"{who}{title}", font=self.font_event,
+                # Title with label - wrap to 2 lines if needed
+                full_title = f"{who}{title}"
+                lines = self._wrap_text(full_title, max_width=15)
+                
+                draw.text((x_start + 50, y), lines[0], font=self.font_event,
                          fill=color)
                 
-                y += 28
+                if len(lines) > 1:
+                    draw.text((x_start + 50, y + 15), lines[1], font=self.font_event,
+                             fill=color)
+                    y += 30
+                else:
+                    y += 24
         else:
             draw.text((x_start, y), "No events", font=self.font_event,
                      fill=self.COLORS["grey"])
@@ -226,7 +234,7 @@ class ThreeColumnV2Renderer:
                         break
                     
                     title = evt.get('summary') or evt.get('title') or 'Untitled'
-                    title = title[:14]  # Truncate for column
+                    title = title[:18]  # Allow longer titles for wrapping
                     
                     # Who
                     who = "A" if evt in ashi_events else "S"
@@ -237,10 +245,18 @@ class ThreeColumnV2Renderer:
                     
                     draw.text((x_start + 5, y), f"{time_str} {who}", font=self.font_event_time,
                              fill=self.COLORS["dark_grey"])
-                    draw.text((x_start + 65, y), title, font=self.font_event,
+                    
+                    # Title - wrap to 2 lines if needed
+                    lines = self._wrap_text(title, max_width=13)
+                    draw.text((x_start + 65, y), lines[0], font=self.font_event,
                              fill=color)
                     
-                    y += 26
+                    if len(lines) > 1:
+                        draw.text((x_start + 65, y + 15), lines[1], font=self.font_event,
+                                 fill=color)
+                        y += 32
+                    else:
+                        y += 26
                 
                 y += 6  # Space between days
             
@@ -280,7 +296,7 @@ class ThreeColumnV2Renderer:
                         break
                     
                     title = evt.get('summary') or evt.get('title') or 'Untitled'
-                    title = title[:14]  # Truncate for column
+                    title = title[:18]  # Allow longer titles for wrapping
                     
                     # Who
                     who = "A" if evt in ashi_events else "S"
@@ -291,10 +307,18 @@ class ThreeColumnV2Renderer:
                     
                     draw.text((x_start + 5, y), f"{time_str} {who}", font=self.font_event_time,
                              fill=self.COLORS["dark_grey"])
-                    draw.text((x_start + 65, y), title, font=self.font_event,
+                    
+                    # Title - wrap to 2 lines if needed
+                    lines = self._wrap_text(title, max_width=13)
+                    draw.text((x_start + 65, y), lines[0], font=self.font_event,
                              fill=color)
                     
-                    y += 26
+                    if len(lines) > 1:
+                        draw.text((x_start + 65, y + 15), lines[1], font=self.font_event,
+                                 fill=color)
+                        y += 32
+                    else:
+                        y += 26
                 
                 y += 6  # Space between days
             
@@ -351,6 +375,27 @@ class ThreeColumnV2Renderer:
         except:
             pass
         return "--:--"
+    
+    def _wrap_text(self, text: str, max_width: int = 18) -> List[str]:
+        """Wrap text into lines for multi-line display.
+        
+        Args:
+            text: Text to wrap
+            max_width: Max characters per line
+            
+        Returns:
+            List of text lines (max 2)
+        """
+        if len(text) <= max_width:
+            return [text]
+        
+        # Try to break at a space
+        for i in range(max_width, 0, -1):
+            if i < len(text) and text[i] == ' ':
+                return [text[:i], text[i+1:max_width]]
+        
+        # No space found, break at max_width
+        return [text[:max_width], text[max_width:]]
     
     def save(self, img: Image.Image, path: str = "three_column_v2.png"):
         """Save image."""
