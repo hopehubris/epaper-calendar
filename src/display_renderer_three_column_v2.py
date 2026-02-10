@@ -133,20 +133,34 @@ class ThreeColumnV2Renderer:
         draw.text((x_start, y), date_full, font=self.font_med,
                  fill=self.COLORS["dark_grey"])
         
-        # Current weather
+        # Current weather (expanded to fill space)
         y += 28
         if current_weather:
             temp = current_weather.get('temp', '--')
-            condition = current_weather.get('condition', 'Unknown')[:15]
+            condition = current_weather.get('condition', 'Unknown')[:20]  # Longer condition text
+            wind = current_weather.get('wind', '')
+            precip = current_weather.get('precip', '')
             
-            # Temperature (large)
-            draw.text((x_start, y), f"{temp}°", font=self.font_lg,
+            # Temperature (extra large)
+            draw.text((x_start, y), f"{temp}°", font=self.font_xl,
                      fill=self.COLORS["black"])
             
-            # Condition
-            y += 24
-            draw.text((x_start, y), condition, font=self.font_sm,
+            # Condition (larger font)
+            y += 32
+            draw.text((x_start, y), condition, font=self.font_lg,
                      fill=self.COLORS["dark_grey"])
+            
+            # Wind (if available)
+            if wind:
+                y += 22
+                draw.text((x_start, y), f"Wind: {wind}", font=self.font_sm,
+                         fill=self.COLORS["dark_grey"])
+            
+            # Precipitation (if available)
+            if precip:
+                y += 18
+                draw.text((x_start, y), f"Rain: {precip}", font=self.font_sm,
+                         fill=self.COLORS["dark_grey"])
         else:
             draw.text((x_start, y), "No weather", font=self.font_sm,
                      fill=self.COLORS["grey"])
@@ -159,10 +173,10 @@ class ThreeColumnV2Renderer:
         y = (self.height // 2) + 8
         y_max = self.height - 20
         
-        # Header (matching middle/right columns)
-        draw.text((x_start, y), "TODAY", font=self.font_med,
+        # Header (matching day labels in middle/right columns - 20pt bold)
+        draw.text((x_start, y), "TODAY", font=self.font_day_label,
                  fill=self.COLORS["black"])
-        y += 20
+        y += 26
         
         # Get today's events
         today_events = self._get_events_by_date(all_events, today)
