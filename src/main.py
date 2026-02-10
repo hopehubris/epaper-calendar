@@ -18,6 +18,7 @@ from src.display_renderer_family import FamilyCalendarRenderer
 from src.display_renderer_week import WeekOverviewRenderer
 from src.display_renderer_threecolumn import ThreeColumnRenderer
 from src.display_renderer_dashboard import DashboardRenderer
+from src.display_renderer_weather_forecast import WeatherForecastRenderer
 from src.stock_fetcher import StockFetcher
 from src.weather_fetcher import WeatherFetcher
 from src.waveshare_driver import get_display_driver
@@ -35,6 +36,7 @@ class CalendarDashboard:
     MODE_WEEK = "week"
     MODE_3COL = "3col"
     MODE_DASHBOARD = "dashboard"
+    MODE_WEATHER = "weather"
     DEFAULT_MODE = MODE_3COL  # Default to 3-column layout
     
     def __init__(self, display_mode: str = DEFAULT_MODE, 
@@ -95,6 +97,11 @@ class CalendarDashboard:
                 config.DISPLAY_WIDTH,
                 config.DISPLAY_HEIGHT
             )
+        elif display_mode == self.MODE_WEATHER:
+            self.renderer = WeatherForecastRenderer(
+                config.DISPLAY_WIDTH,
+                config.DISPLAY_HEIGHT
+            )
         else:  # MODE_FAMILY
             self.renderer = FamilyCalendarRenderer(
                 config.DISPLAY_WIDTH,
@@ -136,9 +143,11 @@ class CalendarDashboard:
             else:
                 logger.warning("Sindi calendar: offline (using cache)")
             
-            # Fetch stocks and weather if dashboard mode
+            # Fetch stocks and weather if needed
             stocks = None
             weather = None
+            weather_forecast = None
+            
             if self.display_mode == self.MODE_DASHBOARD:
                 logger.info("Fetching stock prices...")
                 stocks = self.stock_fetcher.get_multiple_prices(self.stock_tickers)
@@ -149,11 +158,24 @@ class CalendarDashboard:
                 if weather:
                     logger.info(f"Weather: {weather.get('temp')}° {weather.get('condition')}")
             
+            elif self.display_mode == self.MODE_WEATHER:
+                logger.info("Fetching 3-day weather forecast...")
+                weather = self.weather_fetcher.get_current_weather()
+                weather_forecast = self.weather_fetcher.get_forecast_3day()
+                if weather:
+                    logger.info(f"Current: {weather.get('temp')}° {weather.get('condition')}")
+                if weather_forecast:
+                    logger.info(f"Forecast: {len(weather_forecast)} days")
+            
             # Render display
             logger.info("Rendering display...")
             if self.display_mode == self.MODE_DASHBOARD:
                 img = self.renderer.render(ashi_events, sindi_events, 
                                          stocks=stocks, weather=weather, 
+                                         update_time=start_time)
+            elif self.display_mode == self.MODE_WEATHER:
+                img = self.renderer.render(weather_forecast=weather_forecast,
+                                         current_weather=weather,
                                          update_time=start_time)
             elif self.display_mode == self.MODE_3COL:
                 img = self.renderer.render(ashi_events, sindi_events, 
@@ -197,9 +219,9 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description="E-Paper Calendar Dashboard")
-    parser.add_argument("--mode", choices=["6week", "glance", "family", "week", "3col", "dashboard"], 
+    parser.add_argument("--mode", choices=["6week", "glance", "family", "week", "3col", "dashboard", "weather"], 
                        default="3col",
-                       help="Display mode: '3col' (3-column), 'week', 'family', '6week', 'glance', 'dashboard'")
+                       help="Display mode: '3col' (3-column), 'week', 'family', '6week', 'glance', 'dashboard', 'weather' (3-day forecast)")
     parser.add_argument("--stocks", nargs="+", default=["NFLX", "MSFT"],
                        help="Stock tickers to show in dashboard mode (e.g., --stocks AAPL MSFT)")
     args = parser.parse_args()

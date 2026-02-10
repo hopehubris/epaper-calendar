@@ -34,7 +34,7 @@ class FamilyCalendarRenderer:
         
         # Load fonts
         try:
-            self.font_xl = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 36)
+            self.font_xl = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 24)  # Reduced from 36
             self.font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 18)
             self.font_medium = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
             self.font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 11)
@@ -65,17 +65,17 @@ class FamilyCalendarRenderer:
         today = datetime.now()
         all_events = ashi_events + sindi_events
         
-        # ===== HEADER: TODAY'S DATE (LARGE & PROMINENT) =====
-        today_str = today.strftime("%A, %B %d").upper()
-        draw.text((20, 8), today_str, font=self.font_xl, fill=self.COLORS["black"])
+        # ===== HEADER: TODAY'S DATE (COMPACT & READABLE) =====
+        today_str = today.strftime("%a, %b %d").upper()  # "FRI, FEB 10" instead of full month
+        draw.text((20, 10), today_str, font=self.font_xl, fill=self.COLORS["black"])
         
         # Divider
-        draw.line([(20, 50), (self.width - 20, 50)], fill=self.COLORS["grey"], width=2)
+        draw.line([(20, 40), (self.width - 20, 40)], fill=self.COLORS["grey"], width=2)
         
         # ===== SECTION 1: TODAY'S EVENTS =====
-        y = 60
+        y = 50
         draw.text((20, y), "TODAY", font=self.font_large, fill=self.COLORS["black"])
-        y += 28
+        y += 25
         
         today_events = self._get_events_by_date(all_events, ashi_events, today)
         
