@@ -108,11 +108,15 @@ class ThreeColumnV2Renderer:
         # Next week events
         self._render_right_column(draw, all_events, ashi_events, today)
         
-        # Footer: Update time (larger and more visible)
+        # Footer: Update time (larger and more visible - centered at bottom)
         if update_time:
             update_str = f"Updated: {update_time.strftime('%b %d at %H:%M')}"
-            draw.text((10, self.height - 18), update_str,
-                     font=self.font_sm, fill=self.COLORS["dark_grey"])
+            # Calculate center position
+            bbox = draw.textbbox((0, 0), update_str, font=self.font_lg)
+            text_width = bbox[2] - bbox[0]
+            x_center = (self.width - text_width) // 2
+            draw.text((x_center, self.height - 20), update_str,
+                     font=self.font_lg, fill=self.COLORS["black"])
         
         return img
     
