@@ -349,6 +349,134 @@ class DisplayRenderer:
         image.save(path)
         logger.info(f"Saved display image to {path}")
 
+
+class AtAGlanceRenderer:
+    """Renders calendar in 'at a glance' format: 3 weeks + today + weather (large text)."""
+    
+    COLORS = {
+        "white": (255, 255, 255),
+        "black": (0, 0, 0),
+        "grey": (200, 200, 200),
+        "light_grey": (230, 230, 230),
+        "red": (255, 0, 0),
+        "dark_grey": (100, 100, 100),
+    }
+    
+    def __init__(self, width: int = 800, height: int = 480):
+        """Initialize at-a-glance renderer."""
+        self.width = width
+        self.height = height
+        
+        # Load fonts (larger sizes for easy reading)
+        try:
+            self.font_xl = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 32)
+            self.font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 18)
+            self.font_medium = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
+            self.font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 11)
+        except (OSError, AttributeError):
+            # Fallback
+            self.font_xl = ImageFont.load_default()
+            self.font_large = ImageFont.load_default()
+            self.font_medium = ImageFont.load_default()
+            self.font_small = ImageFont.load_default()
+    
+    def render(self, ashi_events: List[Dict], sindi_events: List[Dict],
+               weather: Optional[Dict] = None, 
+               update_time: Optional[datetime] = None) -> Image.Image:
+        """Render at-a-glance calendar view.
+        
+        Args:
+            ashi_events: Ashi's events (red color in legend)
+            sindi_events: Sindi's events (black)
+            weather: Optional weather dict with 'temp', 'condition'
+            update_time: Last update timestamp
+            
+        Returns:
+            PIL Image (800x480)
+        """
+        # Create white background
+        img = Image.new("RGB", (self.width, self.height), self.COLORS["white"])
+        draw = ImageDraw.Draw(img)
+        
+        # Layout zones
+        header_h = 60
+        today_h = 100
+        calendar_h = 260
+        footer_h = 60
+        
+        # ===== HEADER: Today's date + weather =====
+        today = datetime.now()
+        today_str = today.strftime("%A, %B %d")
+        draw.text((20, 10), today_str, font=self.font_xl, fill=self.COLORS["black"])
+        
+        # Weather on the right
+        if weather:
+            weather_str = f"{weather.get('temp', '??')}° {weather.get('condition', '')}"
+            draw.text((self.width - 200, 15), weather_str, font=self.font_medium, fill=self.COLORS["dark_grey"])
+        
+        # ===== TODAY'S EVENTS =====
+        y = header_h + 5
+        draw.text((20, y), "TODAY:", font=self.font_large, fill=self.COLORS["black"])
+        y += 25
+        
+        today_events = [e for e in (ashi_events + sindi_events) 
+                       if datetime.fromisoformat(e['start']).date() == today.date()]
+        
+        if today_events:
+            for evt in today_events[:3]:  # Show max 3 events
+                start_time = datetime.fromisoformat(evt['start']).strftime("%H:%M")
+                title = evt['title'][:40]  # Truncate long titles
+                color = self.COLORS["red"] if evt in ashi_events else self.COLORS["black"]
+                draw.text((40, y), f"{start_time} - {title}", font=self.font_small, fill=color)
+                y += 20
+        else:
+            draw.text((40, y), "No events today", font=self.font_small, fill=self.COLORS["grey"])
+        
+        # ===== NEXT 3 WEEKS CALENDAR =====
+        y = today_h + 70
+        draw.line([(20, y), (self.width - 20, y)], fill=self.COLORS["grey"], width=1)
+        y += 10
+        draw.text((20, y), "NEXT 3 WEEKS:", font=self.font_large, fill=self.COLORS["black"])
+        y += 28
+        
+        # Show week-by-week
+        for week_num in range(3):
+            week_start = today + timedelta(days=1 + week_num * 7)
+            week_end = week_start + timedelta(days=6)
+            
+            week_label = week_start.strftime("%b %d") + " - " + week_end.strftime("%b %d")
+            draw.text((20, y), week_label, font=self.font_medium, fill=self.COLORS["black"])
+            
+            # Count events this week
+            week_events = [e for e in (ashi_events + sindi_events)
+                          if week_start.date() <= datetime.fromisoformat(e['start']).date() <= week_end.date()]
+            
+            if week_events:
+                event_summary = f"{len(week_events)} events"
+                ashi_count = len([e for e in week_events if e in ashi_events])
+                if ashi_count > 0:
+                    event_summary += f" ({ashi_count} yours)"
+                draw.text((self.width - 200, y), event_summary, font=self.font_small, fill=self.COLORS["dark_grey"])
+            
+            y += 22
+        
+        # ===== FOOTER: Legend + update time =====
+        y = self.height - footer_h + 5
+        draw.text((20, y), "Legend:", font=self.font_small, fill=self.COLORS["black"])
+        draw.text((100, y), "Red = Ashi  |  Black = Sindi", font=self.font_small, fill=self.COLORS["dark_grey"])
+        
+        if update_time:
+            update_str = f"Updated: {update_time.strftime('%H:%M')}"
+            draw.text((self.width - 200, y), update_str, font=self.font_small, fill=self.COLORS["grey"])
+        
+        return img
+    
+    def save(self, img: Image.Image, path: str = "display_output.png"):
+        """Save image to file."""
+        img.save(path)
+        logger.info(f"Saved at-a-glance image to {path}")
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     

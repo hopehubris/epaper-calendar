@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from src import config
 from src.cache_manager import CacheManager
 from src.calendar_fetcher import CalendarFetcher
-from src.display_renderer import DisplayRenderer
+from src.display_renderer import DisplayRenderer, AtAGlanceRenderer
 from src.waveshare_driver import get_display_driver
 from src import utils
 
@@ -21,9 +21,18 @@ logger = logging.getLogger(__name__)
 class CalendarDashboard:
     """Main calendar dashboard application."""
     
-    def __init__(self):
-        """Initialize dashboard."""
-        logger.info("Initializing Calendar Dashboard")
+    # Display modes
+    MODE_6WEEK = "6week"
+    MODE_GLANCE = "glance"
+    DEFAULT_MODE = MODE_GLANCE  # Default to "at a glance" view
+    
+    def __init__(self, display_mode: str = DEFAULT_MODE):
+        """Initialize dashboard.
+        
+        Args:
+            display_mode: "6week" for full grid, "glance" for at-a-glance view
+        """
+        logger.info(f"Initializing Calendar Dashboard (mode: {display_mode})")
         
         # Validate configuration
         try:
@@ -39,11 +48,21 @@ class CalendarDashboard:
             str(config.TOKEN_PATH),
             self.cache
         )
-        self.renderer = DisplayRenderer(
-            config.DISPLAY_WIDTH,
-            config.DISPLAY_HEIGHT,
-            config.DISPLAY_COLOR_MODE
-        )
+        
+        # Initialize appropriate renderer
+        self.display_mode = display_mode
+        if display_mode == self.MODE_6WEEK:
+            self.renderer = DisplayRenderer(
+                config.DISPLAY_WIDTH,
+                config.DISPLAY_HEIGHT,
+                config.DISPLAY_COLOR_MODE
+            )
+        else:  # MODE_GLANCE
+            self.renderer = AtAGlanceRenderer(
+                config.DISPLAY_WIDTH,
+                config.DISPLAY_HEIGHT
+            )
+        
         self.display = get_display_driver(use_hardware=True)
         
         logger.info("Dashboard initialized successfully")
@@ -115,12 +134,20 @@ class CalendarDashboard:
 
 def main():
     """Main entry point."""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="E-Paper Calendar Dashboard")
+    parser.add_argument("--mode", choices=["6week", "glance"], default="glance",
+                       help="Display mode: '6week' for full grid, 'glance' for at-a-glance")
+    args = parser.parse_args()
+    
     logger.info("=" * 60)
     logger.info("E-Paper Calendar Dashboard v0.1.0")
     logger.info(f"Start time: {datetime.now().isoformat()}")
+    logger.info(f"Display mode: {args.mode}")
     logger.info("=" * 60)
     
-    dashboard = CalendarDashboard()
+    dashboard = CalendarDashboard(display_mode=args.mode)
     
     try:
         dashboard.run_once()
