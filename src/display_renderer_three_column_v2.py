@@ -199,13 +199,13 @@ class ThreeColumnV2Renderer:
                 # Line 1: Time - Title (matching middle/right style)
                 draw.text((x_start + 5, y), f"{time_str} - {title}", font=self.font_event,
                          fill=color)
-                y += 18
+                y += 16
                 
                 # Line 2: Who (person name - same font)
                 draw.text((x_start + 5, y), who, font=self.font_event,
                          fill=color)
                 
-                y += 28
+                y += 24
         else:
             draw.text((x_start + 5, y), "No events", font=self.font_event,
                      fill=self.COLORS["grey"])
@@ -255,13 +255,13 @@ class ThreeColumnV2Renderer:
                     # Line 1: Time - Title
                     draw.text((x_start + 5, y), f"{time_str} - {title}", font=self.font_event,
                              fill=color)
-                    y += 18
+                    y += 16
                     
                     # Line 2: Who (person name)
                     draw.text((x_start + 5, y), who, font=self.font_event,
                              fill=color)
                     
-                    y += 28
+                    y += 24
                 
                 y += 6  # Space between days
             
@@ -313,13 +313,13 @@ class ThreeColumnV2Renderer:
                     # Line 1: Time - Title
                     draw.text((x_start + 5, y), f"{time_str} - {title}", font=self.font_event,
                              fill=color)
-                    y += 18
+                    y += 16
                     
                     # Line 2: Who (person name)
                     draw.text((x_start + 5, y), who, font=self.font_event,
                              fill=color)
                     
-                    y += 28
+                    y += 24
                 
                 y += 6  # Space between days
             
