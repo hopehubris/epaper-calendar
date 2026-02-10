@@ -34,43 +34,53 @@ class StockFetcher:
             Dict with {price, change, change_pct} or None if failed
         """
         if not self.api_key:
+            logger.warning("No API key configured")
             return None
         
         try:
             # Use Polygon's snapshot endpoint for real-time data
-            url = f"{self.base_url}/open-close/{ticker}/2024-02-09"
+            snapshot_url = f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/{ticker.upper()}"
             params = {"apiKey": self.api_key}
             
-            # Note: For truly real-time, would use /snapshot/locale/us/markets/stocks/tickers/{ticker}
-            # But open-close works for previous day. Let's try the snapshot endpoint instead.
-            
-            snapshot_url = f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/{ticker}"
-            response = requests.get(snapshot_url, params=params, timeout=5)
+            logger.debug(f"Fetching {ticker} from {snapshot_url}")
+            response = requests.get(snapshot_url, params=params, timeout=10)
             
             if response.status_code == 200:
                 data = response.json()
+                logger.debug(f"Response for {ticker}: {data}")
                 
-                if 'results' in data and data['results']:
+                if data.get('status') == 'OK' and 'results' in data and data['results']:
                     result = data['results'][0]
-                    last_price = result.get('last', {}).get('price')
-                    prev_close = result.get('prevDay', {}).get('c')
                     
-                    if last_price and prev_close:
-                        change = last_price - prev_close
-                        change_pct = (change / prev_close * 100) if prev_close else 0
+                    # Extract pricing data
+                    last_quote = result.get('lastQuote', {})
+                    last_trade = result.get('lastTrade', {})
+                    prev_close = result.get('prevDay', {})
+                    
+                    last_price = last_quote.get('ask') or last_trade.get('p')
+                    prev_close_price = prev_close.get('c')
+                    
+                    if last_price and prev_close_price:
+                        change = last_price - prev_close_price
+                        change_pct = (change / prev_close_price * 100) if prev_close_price else 0
                         
+                        logger.info(f"{ticker}: ${last_price} ({change_pct:+.2f}%)")
                         return {
                             'price': round(last_price, 2),
                             'change': round(change, 2),
                             'change_pct': round(change_pct, 2),
                             'timestamp': datetime.now()
                         }
+                else:
+                    logger.warning(f"Invalid response for {ticker}: {data.get('status')}")
+            else:
+                logger.warning(f"HTTP {response.status_code} for {ticker}")
+                logger.debug(f"Response: {response.text[:200]}")
             
-            logger.warning(f"Failed to fetch {ticker}: status {response.status_code}")
             return None
             
         except Exception as e:
-            logger.error(f"Error fetching {ticker}: {e}")
+            logger.error(f"Error fetching {ticker}: {e}", exc_info=True)
             return None
     
     def get_multiple_prices(self, tickers: List[str]) -> Dict[str, Dict]:

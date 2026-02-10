@@ -17,6 +17,7 @@ from src.display_renderer import DisplayRenderer, AtAGlanceRenderer
 from src.display_renderer_family import FamilyCalendarRenderer
 from src.display_renderer_dashboard import DashboardRenderer
 from src.stock_fetcher import StockFetcher
+from src.weather_fetcher import WeatherFetcher
 from src.waveshare_driver import get_display_driver
 from src import utils
 
@@ -57,8 +58,9 @@ class CalendarDashboard:
             self.cache
         )
         
-        # Initialize stock fetcher for dashboard mode
+        # Initialize stock and weather fetchers for dashboard mode
         self.stock_fetcher = StockFetcher()
+        self.weather_fetcher = WeatherFetcher()
         self.stock_tickers = stock_tickers or ["NFLX", "MSFT"]
         
         # Initialize appropriate renderer
@@ -127,7 +129,11 @@ class CalendarDashboard:
                 logger.info("Fetching stock prices...")
                 stocks = self.stock_fetcher.get_multiple_prices(self.stock_tickers)
                 logger.info(f"Fetched {len(stocks)} stocks")
-                # TODO: Add weather fetching
+                
+                logger.info("Fetching weather...")
+                weather = self.weather_fetcher.get_current_weather()
+                if weather:
+                    logger.info(f"Weather: {weather.get('temp')}° {weather.get('condition')}")
             
             # Render display
             logger.info("Rendering display...")

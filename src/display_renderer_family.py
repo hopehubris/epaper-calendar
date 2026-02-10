@@ -82,7 +82,8 @@ class FamilyCalendarRenderer:
         if today_events:
             for evt in today_events[:4]:
                 time_str = self._format_time(evt)
-                title = evt.get('title', 'Untitled')[:45]
+                title = evt.get('summary') or evt.get('title') or 'Untitled'
+                title = title[:45]
                 color = self.COLORS["red"] if evt in ashi_events else self.COLORS["black"]
                 
                 draw.text((30, y), time_str, font=self.font_small, fill=self.COLORS["dark_grey"])
@@ -113,7 +114,8 @@ class FamilyCalendarRenderer:
                 # Events (max 2 per day)
                 for evt in day_events[:2]:
                     time_str = self._format_time(evt)
-                    title = evt.get('title', 'Untitled')[:40]
+                    title = evt.get('summary') or evt.get('title') or 'Untitled'
+                    title = title[:40]
                     color = self.COLORS["red"] if evt in ashi_events else self.COLORS["black"]
                     
                     draw.text((35, y), f"{time_str} - {title}", font=self.font_small, fill=color)

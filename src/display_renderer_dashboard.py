@@ -127,7 +127,9 @@ class DashboardRenderer:
             if day_events:
                 for evt in day_events[:2]:
                     time_str = self._format_time(evt)
-                    title = evt.get('title', 'Untitled')[:25]
+                    # Use 'summary' from Google Calendar API, not 'title'
+                    title = evt.get('summary') or evt.get('title') or 'Untitled'
+                    title = title[:25]
                     color = self.COLORS["ashi"] if evt in ashi_events else self.COLORS["sindi"]
                     
                     name = "Ashi" if evt in ashi_events else "Sindi"
